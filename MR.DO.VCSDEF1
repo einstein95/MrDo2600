@@ -1,0 +1,44 @@
+*FILE: MR.DO.VCSDEF:
+*ATARI VCS VIDEO REGS + 6532 RIOT
+********************************
+                         ;
+ATSYNC   =    $00        ;B1=1 BRINGS GUN HOME.
+ATBLNH   =    $01        ;B1=1 TURN GUN OFF.
+ATWGIT   =    $02        ;STOP 6507 UNTIL END OF LINE.
+ATGCTL   =    $04        ;SPRITE/MISSLE A CONTROL-
+ATBCTL   =    $05        ;SAME AS ATACTL FOR SPRITE B.
+ATACOL   =    $06        ;SPR1TE/MISSLE A COLOR.
+ATBCOL   =    $07        ;COLOR SPPITE B
+ATFCOL   =    $08        ;FIELD COLOR
+ATSCOL   =    $09        ;SCREEN COLOR
+ATFCTL   =    $OA        ;FIELD DATA/MISSLE CONTROL
+ATSALA   =    $10        ;SPRITE A HORIZ LATCH.
+ATSELQ   =    $11
+ATADQT   =    $18        ;SPRITE A DATA.
+ATBDQT   =    $1C        ;SPRITE B DATA
+ATMVIN   =    $29        ;ADDS INCR. TO SPRITE & MISSLE POS
+ATREMV   =    $28        ;RESET ALL 5 INCREHEHT REES.
+ATJBA    =    $3C        ;JOY BUTTON A.
+JOYDAT   =    $280       ;JOYSTICKDATA (PORT A).ALSO PADDLE
+                         ;O=CLOSED  1=OPEN
+*   JOYDAT BITMASKS-->
+*-------------------------
+JOYAUP   =    $15        ;A UP
+JOYADN   =    $20        ;A DOWN
+JOYALT   =    $40        ;A LEFT
+JOYART   =    $30        ;A RIGHT
+                         ;
+                         ;
+SWITCH   = $282          ;PANEL SWITCHES (PORT B).
+*   BIT MASKS FOR SWITCH-->
+*------------------------------
+SWIRES   =    $01        ;GAME RESET
+SWISEL   =    $02        :GAME SELECT
+SWICCIL  =    $03        ;TV TYPE(0=BW, 1:COL)
+SWIQDF   =    $40        ;PLAYER A DIFFICULTV
+SNIRDF   =    $30        ;       B
+
+*  6532 READ-ONLY REGS
+*------------------------
+TIMER    =    $204       ;TIMER
+TIME64   =    $296       ;TIMER/64.
