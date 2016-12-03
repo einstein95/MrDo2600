@@ -12,7 +12,7 @@
 *    GAME CONTROL RAM          *
 *-------------------------------
 GAME     =    $80        ;$B0-B3 = GAME NUM.
-ROUND    =    $81        ;$BO-B3 = ROUND NUM.
+ROUND    =    $81        ;$B0-B3 = ROUND NUM.
                          ;
 ********************************
 *         SCORE DATA           *
@@ -38,10 +38,10 @@ BDUR     =    $39        ;DURATION OF CH B SOUND.
 *-------------------------------
 DIGINV   =    $89        ;NUM DIGGERS LEFT.
 ALPHA    =    $88        ;ALPHA MONSTER STATUS.
-                         ;BO-B2=IDX FDR CHANNEL SELECT.
+                         ;B0-B2=IDX FDR CHANNEL SELECT.
                          ;B3-B7=LETTER GOTTEN FLAGS.
 CHERRYT  =    $8C        ;CHERRY TIMER/NOTE PTR.
-                         ;BO-B4=TIMER SINCE LAST CHERRY EATEN.
+                         ;B0-B4=TIMER SINCE LAST CHERRY EATEN.
                          ; (0=TIMER EXPIRED).
                          ;B5-B7=NOTE IDX FOR NEXT CHERRY EATEN SOUND.
                          ;
@@ -105,7 +105,7 @@ DIGBAND  =    $35        ;DIG VERT POS.
                          ;
 DOPOF    =    $C0
 DIGPOF   =    $C1        ;DIG HORIZ POS.
-                         ;BO-B6 = IDX TO POSTBL.
+                         ;B0-B6 = IDX TO POSTBL.
                          ;
 DODAT    =    $C3
 DIGDAT   =    $C4        ;DIG DATA PTR.
@@ -116,7 +116,7 @@ DIGDIR   =    $C6        ;DIG CONTROL.
                          ;
 DIGSPD   =    $C9        ;DIG SPEED.
                          ;(IDX TD SPDTBL)
-                         ;BO= UP SPEED.
+                         ;B0= UP SPEED.
                          ;B1= DOWN SPEED.
                          ;B2= LEFT SPEED.
                          ;B3= RIGHT SPEED.
@@ -125,7 +125,7 @@ DIGTIM   =    $CA        ;DIG STAGE. TIMER.
 DIGIQ    =    $CC        ;DIG INTELLIGENCE.
                          ;B0-B2=HOW MANY CCELLS TO GO
                          ;BEFORE TRYING NEW DIR.
-MUX      =    $CE        ;NUMO TO 2 FOR MUX MGR.
+MUX      =    $CE        ;NUM0 TO 2 FOR MUX MGR.
                          ;
                          ;
 ********************************
@@ -178,8 +178,8 @@ BPOF     =    $F8        ;SB POF VALUES FOR 8 BANDS.
                          ;
 *  TEMP VERTICAL INTERVAL RAM
 *-----------------------------
-TEMP14   =    SEA
-TEMP15   =    5EB
+TEMP14   =    $EA
+TEMP15   =    $EB
 TEMP11   =    $EC
 TEMF12   =    $ED
 TEMF13   =    $EE
