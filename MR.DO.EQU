@@ -1,0 +1,273 @@
+*/MR.DO.EQU (PAL) LAST EDIT:9/15/83
+********************************
+*                              *
+*   *****      *     *   *     *
+*   *   *     * *    ** **     *
+*   *****    *****   * * *     *
+*   **       *   *   *   *     *
+*   * *      *   *   *   *     *
+*   *  **    *   *   *   *     *
+*                              *
+********************************
+*    GAME CONTROL RAM          *
+*-------------------------------
+GAME     =    $80        ;$b0-B3 = GAME NUM.
+ROUND    =    $81        ;$BO-B3 = ROUND NUM.
+                         ;
+********************************
+*         SCORE DATA           *
+*-------------------------------
+SCORLO   =    $82        ;LO 2 SCORE DIGITS.
+SCORHI   =    $83        ;HI 2 SCORE DIGITS.
+                         ;
+FRAMEL   =    $84        ;FRAME COUNT LO.
+FRQMEH   =    $85        ;FRAME COUNT HI.
+                         ;
+********************************
+*        SOUND DATA            *
+*-------------------------------
+AIDX     =    $86        :IDX TO CH A SOUND.
+BIDX     =    $87        :IDX TO CH B SOUND.
+ADUR     =    $88        ;DURATION OF CH 9 SOUND.
+                         ;ZERO  = GET NEXT NOTE.
+                         ;MINUS = NO SOUND ON.
+BDUR     =    $39        ;DURATION OF CH B SOUND.
+                         ;
+********************************
+*    MISC.  STATUS  BYTES-->   *
+*-------------------------------
+DIGINV   =    $89        ;NUM DIGGERS LEFT.
+ALPHA    =    $88        ;ALPHA MONSTER STATUS.
+                         ;BO-B2=IDX FDR CHANNEL SELECT.
+                         ;B3-B7=LETTER GOTTEN FLAGS.
+CHERRYT  =    $8C        ;CHERRY TIMER/NOTE PTR.
+                         ;BO-B4=TIMER SINCE LAST CHERRY EATEN.
+                         ; (0=TIMER EXPIRED).
+                         ;B5-B7=NOTE IDX FOR NEXT CHERRY EATEN SOUND.
+                         ;
+APFALL   =    $8D        ;APPLE FALLING IDX.
+                         ;B7=1=NO APPLE FALLING.
+                         ;B4-B6=WHICH APPLE IS FALLING.
+                         ;B0-B3=STAGE TIMER.
+ANIM8    =    $8E        ;ANIMATION FLAGS.
+                         ;B7=MR DO BEING DRQGGED.
+                         ;B6=DIG1 BEING DRAGGED.
+                         ;B5=DIG2 BEING DPAGGED.
+                         ;B1=ALF MONSTER OUT.
+                         ;B0=MR DO IMG.FLIP/FLOP.
+FCOLOR   =    $8F        ;FIELD (ORCHARD) COLOR.
+********************************
+*      CHERRY DATA             *
+*-------------------------------
+                         ;8 BYTES ($90-97).
+CHERRYC  =    $90        ;CHERRY CONTROLS FOR 9 BANDS.
+                         ;B0-B2 = CONTROL VALUE (REP/SPACING).
+                         ;B3-B6 = IDX TD CPOF TABLE.
+                         ;B7 = NO CHERRY/SOME CHERRY FLAG.
+                         ;
+********************************
+*      ASYM FIELD DATA         *
+*-------------------------------
+                         ;32 BYTES ($98-$B7).
+FR1L     =    $98        ;8 BANDS OF FR1 LEFT DATA.
+FR2L     =    $A0        ;8 BANDS OF FR2 LEFT DATA.
+FR2R     =    $A8        ;8 BANDS OF FR1 RIGHT DATA.
+FH1R     =    $BO        ;8 BANDS OF FR2 RIGHT DATA.
+                         ;
+LASTJY   =    $B8        ;LAST LEGAL JOY (MR.DO. DIR).
+                         ;
+********************************
+*      MISSLE DATA             *
+*-------------------------------
+MISLN    =    $B9        ;MIS LINENUM.
+MSBAND   =    $BA        ;MIS VERT POS.
+                         ;B0-B3 = LN OFFSET.
+                         ;B4-B6 = BAND NUM.
+                         ;B7 = ON/OFF FLAG.
+                         ;
+MISPOF   =    $BB        ;MIS HORIZ POS.
+                         ;B0-B6 = IDX TO POSTBL
+                         ;B7 = MIS AVAILABLE FLAG.
+MISDIR   =    $BC        ;MIS DIRECTION.
+                         ;B0-B1 = MIS DIRECTION.
+                         ;ALSO DOUBLES AS TIME
+                         ;BEFORE PWRBALL AVAIL AGAIN.
+                         ;
+                         ;
+********************************
+*   MR.DO & DIGGER DATA        *
+*-------------------------------
+DOBAND   =    $BD
+DIGBAND  =    $35        ;DIG VERT POS.
+                         ;B0-B3 = LN OFFSET.
+                         ;84-86 = BAND NUM.
+                         ;B7= ON/OFF FLAG.
+                         ;
+DOPOF    =    $C0
+DIGPOF   =    $C1        ;DIG HORIZ POS.
+                         ;BO-B6 = IDX TO POSTBL.
+                         ;
+DODAT    =    $C3
+DIGDAT   =    $C4        ;DIG DATA PTR.
+                         ;
+DIGDIR   =    $C6        ;DIG CONTROL.
+                         ;B0-B1 = DIRECTION.
+                         ;B7 = DIGGING FLAG.
+                         ;
+DIGSPD   =    $C9        ;DIG SPEED.
+                         ;(IDX TD SPDTBL)
+                         ;BO= UP SPEED.
+                         ;B1= DOWN SPEED.
+                         ;B2= LEFT SPEED.
+                         ;B3= RIGHT SPEED.
+                         ;
+DIGTIM   =    $CA        ;DIG STAGE. TIMER.
+DIGIQ    =    $CC        ;DIG INTELLIGENCE.
+                         ;B0-B2=HOW MANY CCELLS TO GO
+                         ;BEFORE TRYING NEW DIR.
+MUX      =    $CE        ;NUMO TO 2 FOR MUX MGR.
+                         ;
+                         ;
+********************************
+*      APPLE RAM               *
+*-------------------------------
+                         ;8 BYTES ($D0-$D7).
+APBAND   =    $D0        ;APPLE POS.
+                         ;B0-B3 = IMG TBL IDX.
+                         ;B4-B6 = BAND NUM.
+                         ;B7 = ON/GONE FLAG.
+                         ;
+APPOF    =    $D4        ;APPLE HORIZ POS.
+                         ;B0-B6 = IDX TO POSTBL.
+                         ;B7 = FALLING FLAG.
+PWRTIM   =    $D8        ;IDX TD PTIME FDR WHEN BALL AVAIL AGAIN.
+MODE     =    $DA        ;GAME MODE.
+RANDOM   =    $D9        ;FREE RUNNING RANDOM #.
+DOINV    =    $DB        ;NUM MR DO'S LEFT.
+                         ;
+********************************
+*   TEMPORARY (SHARED) RAM     *
+*-------------------------------
+                         ;36 BYTES ($DC-$FF).
+                         ;
+*  RAM USED TO PAINT PLAYFIELD->
+********************************
+PTR      =    $DC        ;SA IMG PAGE FLAGS FOR 8 BANDS.
+                         ;
+BAND     =    $DD        ;BAND NUM
+                         ;
+* SPRITE A (DIG,APPLE) DISPLAY RAM
+* ($DE-$EE)
+**********************************
+LDDATA   =    SDE        ;LU ADDRS SA (8 BANDS).
+ADAT     =    $E5        ;LU ADDR FOR SA INDIRECT.
+HIDATA   =    $E6        ;HI DATA ADDRS FOR SA.
+                         ;$E7-$EE->
+APOF     =    $E7        ;SA POFS.
+                         ;
+* SPRITE B (MR DO,CHERRY) DISPLAY RAM
+*   ($EF-$FF)
+*************************************
+LDDATB   =    $EE        ;LO ADDRS SB (8 BANDS).
+EDAT     =    $Fé        ;LU ADDR FOR SB INDIRECT.
+HIDATB   =    $F7        ;HI DATA ADDR FOR SE.
+                         ;$F8-$FF->
+                         ;**********
+BPOF     =    $F8        ;SB POF VALUES FOR 8 BANDS.
+                         ;
+                         ;
+*  TEMP VERTICAL INTERVAL RAM
+*-----------------------------
+TEMP14   =    SEA
+TEMP15   =    5EB
+TEMP11   =    $EC
+TEMF12   =    $ED
+TEMF13   =    $EE
+TEMP1    =    $EF
+TEMP2    =    $F0
+TEMP3    =    $F1
+TEMP4    =    $F2
+TEMP5    =    $F3
+TEMP6    =    $F4
+TEMP7    =    $F5
+TEMP8    =    $F6
+TEMP9    =    $F7
+TEMP10   =    $F8
+                         ;
+* RAM FOR DISPLAYING 6 SPRITES->
+* NOTE-THIS RAM PLUS TEMP1,2,3 DOES
+* NOT CONFLTCT WITH SA DISPLAY RAM.
+*************************************
+PD100K   =    $F2
+PD10K    =    $F4
+PD1K     =    $F6
+PD100    =    $F8
+PD10     =    $FA
+PD1      =    $FC
+                         ;
+                         ;
+********************************
+*                              *
+*   *****    *****     *    *  *
+*   *        *   *     *    *  *
+*   ***      *   *     *    *  *
+*   *        *   *     *    *  *
+*   *        *   **    *    *  *
+*   *****    ***** *   ******  *
+*                              *
+********************************
+*     COLOR   EQUATES          *
+*-------------------------------
+                         ;
+BLACK    =    0
+WHITE    =    $0E
+RED      =    $22
+YELLOW   =    $28
+GREEN    =    $34
+ORANGE   =    $28
+BLUE     =    $B6
+PURPLE   =    $68
+BROWN    =    $12
+GOLD     =    $16
+LBLUE    =    $96
+                         ;
+SCRCDL   =    BLACK      ;BKGND COLOR OF ORCHARDS.
+                         ;
+********************************
+*  DIRECTION EQUATES ->        *
+*-------------------------------
+* STARTING IDXS FOR EACH DIR IN DIRTBL->
+UPI      =    0
+DOWNI    =    4
+RIGHTI   =    8
+LEFTI    =    12
+                         ;
+* DIRECTION VALUES-->
+UPD      =    0
+DUHND    =    1
+RIGHTD   =    2
+LEFTD    =    3
+                         ;
+********************************
+*    GAME MODES-->             *
+********************************
+RESUN    =    $80        ;RESUME PLAY MODE(1 SEC BLACK).
+XTRADU   =    $70        ;EXTRA MR.DO.WON.
+TRACK    =    $50        ;ALT CPMD+ ORCH.
+GGMOVR   =    $40
+SELECT   =    $30        ;SELECT MODE.
+DODEAD   =    $20
+PLAY     =    $10
+                         ;
+********************************
+*  VERT INTERVAL TIMER EQUATES *
+*-------------------------------
+* TOTAL PICTIME (TITLE & ORCH)=178 LINES.
+                         ;44 LINES.
+TUPTIM   =    $A9+10     ;TDPVI TIMER VALUE.
+                         ;51 LINES.
+MIDTIM   =    $AD+15     ;TIME TO PAINT SCORE,EXTRA + SET RAM UP.
+                         ;39 LINES.
+BOTTIM   =    $9F+13     ;EOTVI TIMER VALUE.
+                         ;---------
+                         ;312 LINES
