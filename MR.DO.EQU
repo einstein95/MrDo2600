@@ -28,16 +28,16 @@ FRQMEH   =    $85        ;FRAME COUNT HI.
 *-------------------------------
 AIDX     =    $86        :IDX TO CH A SOUND.
 BIDX     =    $87        :IDX TO CH B SOUND.
-ADUR     =    $88        ;DURATION OF CH 9 SOUND.
+ADUR     =    $88        ;DURATION OF CH A SOUND.
                          ;ZERO  = GET NEXT NOTE.
                          ;MINUS = NO SOUND ON.
-BDUR     =    $39        ;DURATION OF CH B SOUND.
+BDUR     =    $89        ;DURATION OF CH B SOUND.
                          ;
 ********************************
 *    MISC.  STATUS  BYTES-->   *
-*-------------------------------
-DIGINV   =    $89        ;NUM DIGGERS LEFT.
-ALPHA    =    $88        ;ALPHA MONSTER STATUS.
+********************************
+DIGINV   =    $8A        ;NUM DIGGERS LEFT.
+ALPHA    =    $8B        ;ALPHA MONSTER STATUS.
                          ;B0-B2=IDX FDR CHANNEL SELECT.
                          ;B3-B7=LETTER GOTTEN FLAGS.
 CHERRYT  =    $8C        ;CHERRY TIMER/NOTE PTR.
@@ -60,7 +60,7 @@ FCOLOR   =    $8F        ;FIELD (ORCHARD) COLOR.
 *      CHERRY DATA             *
 *-------------------------------
                          ;8 BYTES ($90-97).
-CHERRYC  =    $90        ;CHERRY CONTROLS FOR 9 BANDS.
+CHERRYC  =    $90        ;CHERRY CONTROLS FOR 8 BANDS.
                          ;B0-B2 = CONTROL VALUE (REP/SPACING).
                          ;B3-B6 = IDX TD CPOF TABLE.
                          ;B7 = NO CHERRY/SOME CHERRY FLAG.
@@ -88,6 +88,7 @@ MSBAND   =    $BA        ;MIS VERT POS.
 MISPOF   =    $BB        ;MIS HORIZ POS.
                          ;B0-B6 = IDX TO POSTBL
                          ;B7 = MIS AVAILABLE FLAG.
+                         ;
 MISDIR   =    $BC        ;MIS DIRECTION.
                          ;B0-B1 = MIS DIRECTION.
                          ;ALSO DOUBLES AS TIME
@@ -98,9 +99,9 @@ MISDIR   =    $BC        ;MIS DIRECTION.
 *   MR.DO & DIGGER DATA        *
 *-------------------------------
 DOBAND   =    $BD
-DIGBAND  =    $35        ;DIG VERT POS.
+DIGBAND  =    $BE        ;DIG VERT POS.
                          ;B0-B3 = LN OFFSET.
-                         ;84-86 = BAND NUM.
+                         ;B4-B6 = BAND NUM.
                          ;B7= ON/OFF FLAG.
                          ;
 DOPOF    =    $C0
@@ -113,7 +114,6 @@ DIGDAT   =    $C4        ;DIG DATA PTR.
 DIGDIR   =    $C6        ;DIG CONTROL.
                          ;B0-B1 = DIRECTION.
                          ;B7 = DIGGING FLAG.
-                         ;
 DIGSPD   =    $C9        ;DIG SPEED.
                          ;(IDX TD SPDTBL)
                          ;B0= UP SPEED.
@@ -130,7 +130,7 @@ MUX      =    $CE        ;NUM0 TO 2 FOR MUX MGR.
                          ;
 ********************************
 *      APPLE RAM               *
-*-------------------------------
+********************************
                          ;8 BYTES ($D0-$D7).
 APBAND   =    $D0        ;APPLE POS.
                          ;B0-B3 = IMG TBL IDX.
@@ -159,8 +159,8 @@ BAND     =    $DD        ;BAND NUM
 * SPRITE A (DIG,APPLE) DISPLAY RAM
 * ($DE-$EE)
 **********************************
-LDDATA   =    SDE        ;LU ADDRS SA (8 BANDS).
-ADAT     =    $E5        ;LU ADDR FOR SA INDIRECT.
+LDDATA   =    $DE        ;LO ADDRS SA (8 BANDS).
+ADAT     =    $E5        ;LO ADDR FOR SA INDIRECT.
 HIDATA   =    $E6        ;HI DATA ADDRS FOR SA.
                          ;$E7-$EE->
 APOF     =    $E7        ;SA POFS.
@@ -169,7 +169,7 @@ APOF     =    $E7        ;SA POFS.
 *   ($EF-$FF)
 *************************************
 LDDATB   =    $EE        ;LO ADDRS SB (8 BANDS).
-EDAT     =    $Fé        ;LU ADDR FOR SB INDIRECT.
+EDAT     =    $F6        ;LU ADDR FOR SB INDIRECT.
 HIDATB   =    $F7        ;HI DATA ADDR FOR SE.
                          ;$F8-$FF->
                          ;**********
@@ -196,7 +196,7 @@ TEMP10   =    $F8
                          ;
 * RAM FOR DISPLAYING 6 SPRITES->
 * NOTE-THIS RAM PLUS TEMP1,2,3 DOES
-* NOT CONFLTCT WITH SA DISPLAY RAM.
+* NOT CONFLICT WITH SA DISPLAY RAM.
 *************************************
 PD100K   =    $F2
 PD10K    =    $F4
@@ -217,7 +217,7 @@ PD1      =    $FC
 *                              *
 ********************************
 *     COLOR   EQUATES          *
-*-------------------------------
+*------------------------------*
                          ;
 BLACK    =    0
 WHITE    =    $0E
@@ -231,7 +231,7 @@ BROWN    =    $12
 GOLD     =    $16
 LBLUE    =    $96
                          ;
-SCRCDL   =    BLACK      ;BKGND COLOR OF ORCHARDS.
+SCRCOL   =    BLACK      ;BKGND COLOR OF ORCHARDS.
                          ;
 ********************************
 *  DIRECTION EQUATES ->        *
@@ -244,17 +244,17 @@ LEFTI    =    12
                          ;
 * DIRECTION VALUES-->
 UPD      =    0
-DUHND    =    1
+DOWND    =    1
 RIGHTD   =    2
 LEFTD    =    3
                          ;
 ********************************
 *    GAME MODES-->             *
 ********************************
-RESUN    =    $80        ;RESUME PLAY MODE(1 SEC BLACK).
-XTRADU   =    $70        ;EXTRA MR.DO.WON.
+RESUM    =    $80        ;RESUME PLAY MODE(1 SEC BLACK).
+XTRADO   =    $70        ;EXTRA MR.DO.WON.
 TRACK    =    $50        ;ALT CPMD+ ORCH.
-GGMOVR   =    $40
+GAMOVR   =    $40
 SELECT   =    $30        ;SELECT MODE.
 DODEAD   =    $20
 PLAY     =    $10
@@ -264,7 +264,7 @@ PLAY     =    $10
 *-------------------------------
 * TOTAL PICTIME (TITLE & ORCH)=178 LINES.
                          ;44 LINES.
-TUPTIM   =    $A9+10     ;TDPVI TIMER VALUE.
+TOPTIM   =    $A9+10     ;TDPVI TIMER VALUE.
                          ;51 LINES.
 MIDTIM   =    $AD+15     ;TIME TO PAINT SCORE,EXTRA + SET RAM UP.
                          ;39 LINES.

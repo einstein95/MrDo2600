@@ -1,0 +1,21 @@
+*/ SOUND EQUATES LASTED 7/8/83
+                         ;
+* OFFSETS FROM SNDTBL-->
+********************************
+DEADSND  =    0
+BEEP     =    8
+BOOP     =    $0E
+BELLS    =    $14
+                         ;CHERRY NOTES->
+CHER1    =    $1C
+CHER2    =    $29
+CHER3    =    $36
+CHER4    =    $43
+CHER5    =    $50
+CHER6    =    $5D
+                         ;
+* OFFSETS FROM AMUSFW (MUSIC)->
+********************************
+SONG1    = 0             ;ORCHARD SONG.
+SONG2    = $31           ;END SONG.
+SONG3    = $51           ;DO DEAD SONG.

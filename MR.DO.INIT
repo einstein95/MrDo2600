@@ -1,0 +1,49 @@
+*/ MR.DO.INIT   LASTED:7/27/83.
+*
+* BANK SWITCH TO 2ND BANK->
+********************************
+TOPSW
+         LDA  $FFF9
+         JMP  TOP2       ;CONT.W/TOPVI.
+* COME HERE FROM BANK 2-->
+********************************
+         NOP
+         NOP
+         NOP
+         NOP
+         JMP  BOTVI
+         NOP
+         NOP
+         NOP
+         NOP
+         NOP
+                         ;
+* ENTER HERE FOR BANK2 POWERUP->
+********************************
+PWRUP
+         SEI
+         CLD
+         LDX  #0
+         TXA
+CLRAM    STA  0,X
+         TXS
+         INX
+         BNE CLRAM
+*
+* GO INIT CHERRY,FIELD MAP,MUGS,APPLES,ETC-->
+**********************************************
+                         ;ROUND=0
+         JSF  IROUND
+                         ;NO SONG->
+                         ;
+         LDA  #SELECT    ;TRACK MODE
+         STA  MODE       ;GAME NUM=0
+                         ;
+         LDA  #$FF
+         STA  ADUR
+         STA  BDUR       ;NO SND.
+                         ;
+         LDA  #$31       ;8X MIS.
+         STA  ATFCTL     ;MIRROR.
+                         ;
+                         ;
