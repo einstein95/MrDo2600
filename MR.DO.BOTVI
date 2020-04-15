@@ -389,274 +389,132 @@ BELOW1
          LDY  #RDUL-DIRTBL
          JMP  HAVDIR     ;JP IF ON SAME BAND.
                          ;
-                         ;
-* MR DO IS BELQW TO LEFT->
+* MR DO IS BELOW TO LEFT->
 ********************************
 BLOL
-D2OF: AG LDY #DLRU-DIRTBL
-Pali: 26 JSR HORV 3H-V=
-;USED T7,T8.
-2214: BO ECS HAVDIR CHOOSE SHORTEST DISTANCE.
-
-2216: AQ
-
-2218: 4C
-
-LDY #LDUR-DIRTBL
-JMF HAVDIR
-
-MEME MEEKER HR RK KKH KRHRERHR EEE H KER E
-
+         LDY  #DLRU-DIRTBL
+         JSR  HORV       ;H-V=
+                         ;USED T7,T8.
+         ECS  HAVDIR     ;CHOOSE SHORTEST DISTANCE.
+         LDY  #LDUR-DIRTBL
+         JMP  HAVDIR
+                         ;
+********************************
 * MR DO IS ABOVE OR EQ TO DIG->
-LEK EH REE EKER ERE E EEE EEE ER EH
-
-DIR2S
-
- 
-
-og
-22 AS CO
-221E: DS co
-
-2220: DO OE
-
-FHF 3SV BAND CMF STAT.
-LDA DOFOF
-
-CMF DOPOF, x
-
-BNE ABOVE
-
- 
-
-* SAME FOS---FORCE VERT MOVE->
-HEEL E MH E E EE
-Fie sFIX SP
-sRANDOM HOR TRY AFT VERT—>
-
-2222: 28
-
- 
-
-RNDUF
-
-222352: AO 06 LDY #ULRD-DIRTBL
-LDA #8
-2227: 25 D9 AND RANDOM
-2229: DO O02 BNE ABOVE
-SURLD.
-
-222B2 AO 00 LDY #URLD-DIRTBL
-
-ABOVEO
-222Di 4C &3 22 IMF HAVDIF
-
-ABOVE!
-
-BCC ABYVL sJF MR DO IS TO LEFT.
+********************************
+DIR25
+         PHP             ;SV BAND CMP STAT.
+         LDA  DOPOF
+         CMF  DOPOF,X
+         BNE  ABOVE1
+                         ;
+* SAME POS---FORCE VERT MOVE->
+********************************
+         PHP             ;FIX SP
+                         ;RANDOM HOR TRY AFT VERT—>
+RNDUP
+         LDY  #ULRD-DIRTBL
+         LDA  #8
+         AND  RANDOM
+         BNE  ABOVE
+                         ;URLD.
+         LDY  #URLD-DIRTBL
+ABOVE0
+         JMP  HAVDIR
+ABOVE1
+         BCC  ABVL       ;JP MR DO IS TO LEFT.
 * MF DO IS ABOVE TO RIGHT->
-HME RERH KERNEN KEN RR RHEE ERE EEE
-
- 
-
- 
-
- 
-
-PLE
-ENE ABOVES :J N ON SAME BANDS.
-sSRANDOM VERT AFT HOR->
+********************************
+         PHP
+         BNE ABOVE3      ;J N ON SAME BANDS.
+                         ;RANDOM VERT AFT HOR->
 RNDRT
-AG 08 LDY #RDUL-DIFTBL
-A? 04 LDA #4
-25 De AND RANDOM
-DO OA BNE ABOVE?
-4C 63 22 JMF HAYVDIR
-ABOVES
-AQ On LDY #URLD-DIRTBL
-290 F7 22 JSR HORV sH-V=
-sUSED T7,T8.
-2245: BO 1C BCS HAVDIR sCHOOSE SHORTEST DIR.
-ABOVE?
-sRUDL
-
-2247: AO 14
-2249: 3
-
-LDY #RUDL-DIRTBL
-JMF HAVDIR
-
- 
-
-* MR DO IS ABOVE TO LEFT—->
-FER HE EE IE HEHEHE IEE EH IE
-
- 
-
-ABYVL
-224C: 28 PLE
-2=24D: DO OB BNE ABOVES iJ N ON SAME BANDS.
-sRANDOM VERT AFT TRY HORIZ~>»
+         LDY  #RDUL-DIRTBL
+         LDA  #4
+         AND  RANDOM
+         BNE  ABOVE2
+         JMP  HAVDIR
+ABOVE3
+         LDY #URLD-DIRTBL
+         JSR  HORV       ;H-V=
+                         ;USED T7,T8.
+         BCS  HAVDIR     ;CHOOSE SHORTEST DIR.
+ABOVE2
+                         ;RUDL
+         LDY  #RUDL-DIRTBL
+         JMP  HAVDIR
+                         ;
+* MR DO IS ABOVE TO LEFT->
+********************************
+ABVL
+         PLE
+         BNE  ABOVE6     ;J N ON SAME BANDS.
+                         ;RANDOM VERT AFT TRY HORIZ->
 RNDLFT
-224F: ADP 10 LDA
-2251: 25 D9 AND
-DO oc BNE
-
-   
-
- 
-
-Para f LOY FLVUN-DIRTE
-2257: 4C 63 22 > JMP  HAVDIR
-
-    
- 
-
-ABOVES
-225A: LDY #ULRD-DIFTEBL
-225E% ae JSR HORY 3H-V=
-sUSED T7,TS.
-225Fs BO O02 BCS HAVDIR sCHOOSE SHORTEST DISTANCE.
+         LDA  #$10
+         AND  RANDOM
+         BNE  ABOVE7
+         LDY  #LDUR-DIRTBL
+         JMP  HAVDIR
+                         ;
+                         ;
+ABOVE6
+         LDY  #ULRD-DIRTBL
+         JSR  HORV       ;H-V=
+                         ;USED T7,T8.
+         BCS  HAVDIR     ;CHOOSE SHORTEST DISTANCE.
 ABOVE7
-3 LUDF:
-2261: AQ OE LDY #LUDR-DIRTBL
+                         ;LUDR
+         LDY  #LUDR-DIRTBL
+                         ;
 HAVDIR
-52 84 F4 > L STY TEMPS sSV PTR TO DIRTBL.
-2265: 4C CD 22 +472 JMF SEARCH sSTART SEARCH.
-
-4
-
- 
-
- 
-
-a:
-
-aS MERKEN EE KSEE EEE KEKE MEER KE RE REY
-P4735  % TRY TO MOVE BADGUY RIGHT-—:
-PATE HERE RENNER RRE HK EMRE ERE RE REREHRER
-2477 MDRT
-
- 
-
- 
-
-BS CO 2478 LDA DOFOF,X
-18 247? ELC
-49 08 7480 ADC #8 ‘TEST POS+8.
-Ag 2481 TAY
-BS BD 2482 LDA DOBAND, x
-20 79 2D 2483 JSR CETST sSEE IF FIELD ON THERE.
-7484 ;USED T1~-T4.
-FO 03 2485 BE@ MDRT2
-4C C7 22 7486 JMF NOGOOD sJP IF ON.
-2487 MDRT2
-2278: 20 3D 2C +488 JSF MRIGHT STRY RT.
-7489 sUSED T1-TS.
-90 O83 P4990 BCC MDRT4 sJP IF COULD GO LEFT.
-4C C7 22 3491 JME NOGOOD
-7492 MDRT4
-2280: AI 02 2493 LDA #RIGHTD sNEW DIR.
-2282: 40 E4 B22 2494 JMP DIDMOQV
-24A9S :
-
-  
-
-BO 31
-AP OS
-4C.E4
-
- 
-
-bi
-hi
-
- 
-
- 
-
-ERE EKER EK KK ELE RARER EE HERES EE EH
-MOVE BADGUY LEFT-—>
-KREME ERMEE KEE ERE HERSEK ERE KE KRE EEE
-
-* TRY
-
+         STY TEMP6       ;SV PTR TO DIRTBL.
+         JMP SEARCH      ;START SEARCH.
+                         ;
+********************************
+*  TRY TO MOVE BADGUY RIGHT-->
+********************************
+MDRT
+         LDA  DOPOF,X
+         CLC
+         ADC  #8         ;TEST POS+8.
+         TAY
+         LDA  DOBAND,X
+         JSR  CCTST      ;SEE IF FIELD ON THERE.
+                         ;USED T1~-T4.
+         BEQ  MDRT2
+         JMP  NOGOOD     ;JP IF ON.
+MDRT2
+         JSR  MRIGHT     ;TRY RT.
+                         ;USED T1-TS.
+         BCC  MDRT4      ;JP IF COULD GO LEFT.
+         JMP  NOGOOD
+MDRT4
+         LDA  #RIGHTD    ;NEW DIR.
+         JMP  DIDMOV
+                         ;
+                         ;
+********************************
+*  TRY TO MOVE BADGUY LEFT-->
+********************************
 MDLT
-
-TO
-
-LDA
-LDY
-BEQ
-DEY
-JSR
-
-BNE
-JSR
-
-BCS
-LDA
-IMF
-
-DOBAND, X
-DOFOF, x
-nNocoop
-
-CCTST
-
-NOGOOD
-MLEFT
-
-NOGOOD
-#LEFTD
-DIDMOV
-
-sJP IF AT EDGE.
-sFOS-1.
-
-sFLD ON?
-
-sUSED T1-TA4.
-
-sJP YES(NOT MOWED).
-
-sTRY UTz
-sUSED T1-T4.
-
-sNEW DIR.
-
- 
-
- 
-
- 
-
-=
-ws
-
-B4
-
-38
-E9
-
-20
-
-DO
-20
-BO
-
-AD
-4c
-
-1B
-OL
-E4
-
- 
-
-KEEK EN ERK H ELE EEE KK RHE EEN HERE RR ERE
-* TRY TO MOVE BADGUY DOWN-- >
-EREKERE RN EM EEE ER EERE EEE EERE EEE
+         LDA  DOBAND,X
+         LDY  DOPOF,X
+         BEQ  NOGOOD     ;JP IF AT EDGE
+         DEY             ;POS-1
+         JSR  CCTST      ;FLD ON?
+                         ;USED T1-T4
+         BNE  NOGOOD     ;JP YES(NOT MOWED).
+         JSR  MLEFT      ;TRY LT.
+                         ;USED T1-T4
+         BCS  NOGOOD
+         LDA  #LEFTD     ;NEW DIR
+         JMP  DIDMOV
+                         ;
+                         ;
+********************************
+*  TRY TO MOVE BADGUY DOWN-->
+********************************
 
 MDDN
 LDA
