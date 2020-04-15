@@ -1,0 +1,1001 @@
+*/ MR.DO.BOTVI LASTED: 9/15/83
+********************************
+*  BOTTOM VERTICAL INTERVAL    *
+********************************
+BOTVI
+         LDA  #BOTTIM
+         STA  ATWAIT
+         STA  TIME64     ;INIT TIMER.
+         LDA  MODE
+         CMP  #PLAY
+         BEQ  PMODE
+                         ;
+*SKIP MOST BOTVI IF NOT PLAY MODE
+********************************
+         JMP  ENDBOT
+                         ;
+* ARE ALL DIGGERS DEAD???
+********************************
+PMODE
+         LDA  #$F8
+         AND  ALPHA
+         CMP  #$F8       ;ALL LETTERS HAD?
+         BEQ  EATTST     ;J Y.(SKIP DIGS DEAD TEST)
+                         ;
+         LDA  DIGBAND
+         BPL  EATTST
+         LDA  DIGBAND+1
+         BPL  EATTST
+                         ;BOTH DIGS ARE OFF->
+         LDA  DIGINV     ;ANY DIGS LEFT?
+         BEQ  NEWRND     ;J N.
+                         ;
+********************************
+* TEST IF ALL CHERRIES ARE GONE*
+********************************
+EATTST
+         LDA  BDUR
+         BPL  SOMLFT     ;JP SONG ON.
+         LDX  #7
+ALGONE
+         LDA  CHERRYC,X
+         BMI  SOMLFT     ;JP SOME CHERRY LEFT.
+         DEX
+         BPL  ALGONE
+                         ;ELSE ALL CHERRIES GONE.
+********************************
+* PREPARE TO START NEW ROUND->  
+********************************
+NEWRND
+         LDA  #RESUM
+         STA  MODE
+                         ;PLAY ROUND OVER SONG->
+         LDA  #SONG1
+         JSR  SONG
+                         ;
+         LDA  #$D8       ;SHORT DELAY BETWEEN
+         STA  FRAMEL     ;SCREENS.
+         JMP  ENDBOT
+SOMLFT
+                         ;
+                         ;
+* MR. DO  V. DIG HIT TEST-> *
+*****************************
+         LDA  DOBAND
+         LSR
+         LSR
+         LSR
+         LSR
+         STA  TEMP1      ;SV DO BAND.
+         LDX  #1         ;TRY BOTH DIGGERS->
+HIT2
+         LDA  DIGBAND,X
+         BMI  NXTTRY     ;JP DIG IS OFF.
+         LSR
+         LSR
+         LSR
+         LSR
+         CMP  TEMP1      ;ON SAME BAND?
+         BNE  NXTTRY     ;JP NO.
+                         ;
+                         ;
+*  DO RANGE TEST FOR HORIZ POS->
+********************************
+         SEC
+         LDA  DOPOF
+         SBC  DIGPOF,X
+         CMP  #2
+         BCC  MDOHIT
+         CMP  #$FE
+         BCC  MDOHIT
+NXTTRY
+         DEX
+         BPL  HIT2       ;TRY OTHER DIGGER.
+         JMP  NOHIT      ;ELSE TRIED BOTH.
+* ADD DIGS BACK TO INVENTORY->
+********************************
+INCINV
+         LDA  DIGBAND
+         BMI  II5
+         INC  DIGINV
+II5
+         LDA  DIGBAND+1
+         BMI  II9
+         INC  DIGINV
+II9
+         RTS
+                         ;
+                         ;
+* MR DO IS HIT BY A DIGGER-->
+********************************
+MDOHIT
+         LDA  #DODEAD
+         STA  MODE
+                         ;
+NOMORE
+         LDA  #SONG3
+         JSR  SONG       ;PLAY DEAD SONG.
+         JSR  INCINV     ;ADD DIGS BACK.
+                         ;
+         LDA  #0
+         STA  FRAMEL
+         LDA  #4
+         STA  MISDIR     ;BRIEF DELAY.
+         LDA  #$FF
+         STA  MSBAND     ;BALL IS UNAVAIL.
+         JMP  ENDBOT
+NOHIT
+                         ;
+                         ;
+********************************
+* FIELD HIT DETECT
+* REMOVE BIT IN FLD MAP WHERE MOST OF MR DO IS-->
+* ALSO WHERE DIGGERS ARE.
+********************************
+         LDA  DOBAND
+         LDX  DOPOF
+         JSR  FMRMV      ;RMV BITS IN FIELD MAP.
+                         ;
+*  REMOVE FIELD WHERE DIGGERS ARE
+********************************
+         LDY  #1
+FLDOUT
+         LDA  DIGTIM,Y   ;DIGGING?
+         BFL  FMAP2      ;J N.
+         LDA  DIGBAND,Y
+         EMI  FMAP2      ;J DIG OFF.
+         LDX  DIGPOF,Y
+         JSR  FMRMV      ;RMV FIELD.
+FMAP2
+         DEY
+         BPL  FLDOUT     ;DO BOTH.
+                         ;
+********************************
+* MOVE BADGUYS-CHASE MR.DO-->  *
+********************************
+         LDA  BDUR
+         EMI  MYVCHK     ;JP MUSIC NOT ON.
+         JME  ENDBOT
+                         ;
+* MASKS FOR DIGS BEING DRAGGED.
+DRAGTB
+         DFB  $40,$20
+********************************
+* A BADGUY/DIGGER ALWAYS CONTINUES MOVING IN A DIRECTION
+* UNTIL HE'S IN A CHAR CELL. THIS MEANS WHEN HE HAS TO
+* DECIDE WHICH DIRECTION TO MOVE NEXT, HE ALWAYS
+* HAS ALL 4 DIRECTIONS TO CHOOSE
+********************************
+MVCHK
+         LDA  MODE
+         CMP  #PLAY
+         BEQ  MVC1       ;J PLAY MODE.
+NMOV
+         JMP  ENDBOT     ;ELSE DON'T MOVE DIGS.
+MVC1
+         LDA  FRAMEL
+         AND  #1
+         TAX             ;X=WHICH DIG TO MOV.
+         INX             ;MAKE 1 OR 2.
+         LDA  DRAGTB-1,X ;GET DRAG BIT MASK.
+         AND  ANIM8      ;BEING DRAGGED?
+         BNE  NMOV       ;ELSE HE CAN'T MOVE.
+         LDA  DOBAND,X   ;GET DIGBAND.
+         BMI  NMOV       ;J IF OFF
+         LDA  DOFOF,X    ;GET DIGPOF.
+         AND  #7
+         BNE  KEEPMV     ;JP NOT ON A COL,KEEP MOVING IN LAST DIR.
+                         ;
+* DIGGER IS ON A COLUMN-->
+********************************
+         LDA  DOBAND,X
+         AND  #$0F
+         BNE  KEEPMV     ;JP NOT W/I A BAND TOO.
+         JMP  NEWMOV
+                         ;
+*KEEP DIGGER MOVING IN SAME DIR->
+* BECAUSE HE'S NOT IN A CC YET.
+*********************************
+KEEPMV
+         LDA  DIGDIR-1,X
+         AND  #3         ;KEEP ONLY DIR BITS.
+         CMP  #UPD
+         BNE  KM5        ;JP NOT UP.
+* MOVE HIM UP-->
+********************************
+         LDY  DIGSPD-1,X
+         LDA  SPDTBL,Y
+         AND  #1
+         STA  TEMP7      ;UP SPD.
+MVU2
+         JSR  MUP        ;MOVE HIM UP.
+                         ;USED T1.
+         BCC  MVU3
+         JMP  ABORT      ;JP CAN'T MV.
+MVU3
+         LDA  DOBAND,X
+         AND  #$0F
+         BEQ  ENDMV      ;IF IN CC DON'T MV AGAIN.
+         DEC  TEMP7
+         BMI  ENDMV
+         LDA  RANDOM
+         AND  #2
+         BEG  MVU2       ;MV AGAIN.
+ENDMV
+         JMP  ENDBOT
+KM5
+         CMP  #DOWND
+         BNE  KM7        ;JP NOT DOWN.
+* MOVE HIM DOWN-->
+********************************
+         LDY  DIGSPD-1, xX
+         LDA  SFDTBL,Y
+         AND  #2
+         LSR
+         STA  TEMP7      ;DOWN SFPD.
+MVD2
+         JSF  MDOWN      ;MOV HIM DOWN.
+                         ;USED T1.
+         BCS  ABORT      ;J CAN'T MOV.
+         LDA  DOBAND,X
+         AND  #$0F
+         BEQ  ENDMV      ;DON'T MV AGAIN IF IN CC.
+         DEC  TEMP7
+         BMI  ENDMV
+         LDA  #2
+         AND  RANDOM
+         BEQ  MVD2       ;MOVE AGAIN
+         BNE  ENDMV
+                         ;
+KM7
+         CMP  #LEFTD
+         BNE  KMRT       ;JP NOT LEFT.
+* MOVE HIM LEFT-->
+********************************
+KMLFT
+         LDY  DIGSPD-1,X
+         LDA  SPDTBL,Y
+         AND  #4
+         LSR
+         LSR
+         STA  TEMP7      ;LFT SPD.
+KML2
+         JSR  MLEFT      ;MOVE HIM LEFT
+                         ;USED T1,T2,T3,T4.
+         BCS  ABORT      ;J CAN'T MOV.
+         LDA  DOPOF,X
+         AND  #7
+         BEQ  ENDMV      ;DON'T MV AGAIN IF IN CC.
+         DEC  TEMP7
+         BMI  ENDMV
+         LDA  #2
+         AND  RANDOM
+         BEQ  KML2       ;MV AGAIN.
+         BNE  ENDMV
+                         ;
+* MOVE HIM RIGHT-->
+********************************
+KMRT
+         LDY  DIGSPD-1,X
+         LDA  SPDTBL,Y
+         AND  #8
+         LSR
+         LSR
+         LSR
+         STA  TEMP7      ;RT. SPD.
+KMRT2
+         JSR  MRIGHT     ;MOVE HIM RIGHT.
+                         ;USED T1,T2,T3,T4.
+         BCS  ABORT      ;J CAN'T MV,
+         LDA  DOPOF,X
+         AND  #7
+         BEQ  EMV        ;DON'T MV AGAIN IF IN CC.
+                         ;
+         DEC  TEMP7
+         BMI  EMV
+         LDA  #2
+         AND  RANDOM
+         BEQ  KMRT2      ;MV AGAIN
+EMV
+         JMP  ENDBOT
+                         ;
+********************************
+* DIGGER IS BOTH ON 4 COL + IN A BAND.
+* (IF DIGIQ = NZ TRY TO KP GOING>
+********************************
+NEWMOV
+         LDA #3
+         STA TEMPS :INIT # DIR TO TRY.
+                         ;
+         LDA DIGIO-1,x
+         BEQ NEWDIR
+         DEC DIGIO-1,X
+                         ;
+* IF H/V POS=D0 H/V POS THEN ABANDON CCELL RULE.
+********************************
+         LDA  DOBAND
+         AND  #$70
+         CMF  DOBAND,X
+         BEQ  ABORT
+                         ;
+         LDA  DOPOF
+         CMF  DOPOF,X
+         BNE  SAME1
+                         ;
+ABORT
+         LDA  #0
+         STA  DIGIQ-1,X
+         JMP  NEWDIR
+                         ;
+
+* TRY TO CONTINUE IN SAME DIR-»
+HHEKE ERE MRE RHEE ERS ERR EE HR HER EH EE
+
+ 
+
+SAME1L
+cS LDA DIGDIR-1,x
+os AND #3
+oo CMF #UFD
+os , BNE NM1
+sRANDOM 2ND TRY AFT UF.
+21CF: 4C 23 22 JMF  RNDUF
+NM1
+21D2: C9 at CMF #DOWND
+21D4: DO oF BNE NM2
+SRANDOM 2ND TRY AFT DOWN.
+21D6: 4C Fil 21 JMF RNDDWN
+NM2
+21p9: C? 03 CMF #LEFTD
+Z1DB: DO O53 BNE NMS
+sRANDOM 2ND TRY AFT LEFT.
+21DD: 4C 4F 22 IMP RNDLFET
+NMS
+
+sRFND 2ND TRY AFT RIGHT.
+
+ 
+
+21E0: 4C 35 22 JMF  RNDRT
+
+ 
+
+:
+
+ 
+
+* FIGURE WHICH DIR TEL TO USE--
+HELE KEKE EERE KEELE MERKEN EERE RE
+
+NEWDIF:
+21E3: AS BD LDA DOBAND
+Z1ES: 29 70 AND #970 SEF BAND.
+ZLB ss = BD CMF DOBAND, X
+21E9: BO 30 BCS DIR2S {JF MR DO ABOVE OR EQ TO DIG.
+
+HEHEHE HEH HE EE EE EE IE IEEE IE
+* MF DO IS BELOW THIS DIGGER-->
+FIR IEEE IIE EE IEE FE EE SEE FE IE HE HE
+
+LDA DOFOF
+
+CMF DOFOF, x
+
+BNE HELOW1
+
+21EB: AS Co
+21ED: DS Co
+21EF: DO 19
+SRANDOM HOR TRY AFT VERT.
+
+RNDDWN
+21F1: AO 12 LDY #DLRU-DIRTBL
+“2iFst 87 10 LDA #$10
+21FS% 26) DY AND RANDOM
+21F7: DO O35 BNE BELOWO
+Z2IF?: AC 62 JMFP  HAVDIR
+BELOWO
+sDRLU.
+21FC: AO oc LDY #DRLU-DIRTSL
+421FE: 4€ 435 JMP HAVDIR
+BELOW)
+
+22013 90 0C BCC BLOL JF MR DO IS TO LEFT.
+
+* MR DO IS BELOW TO RIGHT-*
+RHEE RE REE ENE KES EE REKE KER EERE EY
+
+22072 AQ OC LDY #DRLU-DIRTBL
+
+ 
+
+2205: 20 FF 22 JSR HORV sWHICH DISTANCE IS GREATER?
+sH-V=
+BO S9? BCS HAVDIF CHOOSE SHORTEST DISTANCE.
+ag 08 LDY #RDUL-DIRTBL
+: JMP  HAVDIR :JP IF ON SAME BAND.
+
+ 
+
+ 
+
+}.
+@eeeoeees#ee#wstees8#e#e#ee#eteeeeeeeese @:
+
+* MR DO IS BELQW TO LEFT->
+SME RKEEEE KE REE EE EEE RHEE RHE ERE EEE
+
+ 
+
+BLOL
+D2OF: AG LDY #DLRU-DIRTBL
+Pali: 26 JSR HORV 3H-V=
+;USED T7,T8.
+2214: BO ECS HAVDIR CHOOSE SHORTEST DISTANCE.
+
+2216: AQ
+
+2218: 4C
+
+LDY #LDUR-DIRTBL
+JMF HAVDIR
+
+MEME MEEKER HR RK KKH KRHRERHR EEE H KER E
+
+* MR DO IS ABOVE OR EQ TO DIG->
+LEK EH REE EKER ERE E EEE EEE ER EH
+
+DIR2S
+
+ 
+
+og
+22 AS CO
+221E: DS co
+
+2220: DO OE
+
+FHF 3SV BAND CMF STAT.
+LDA DOFOF
+
+CMF DOPOF, x
+
+BNE ABOVE
+
+ 
+
+* SAME FOS---FORCE VERT MOVE->
+HEEL E MH E E EE
+Fie sFIX SP
+sRANDOM HOR TRY AFT VERT—>
+
+2222: 28
+
+ 
+
+RNDUF
+
+222352: AO 06 LDY #ULRD-DIRTBL
+LDA #8
+2227: 25 D9 AND RANDOM
+2229: DO O02 BNE ABOVE
+SURLD.
+
+222B2 AO 00 LDY #URLD-DIRTBL
+
+ABOVEO
+222Di 4C &3 22 IMF HAVDIF
+
+ABOVE!
+
+BCC ABYVL sJF MR DO IS TO LEFT.
+* MF DO IS ABOVE TO RIGHT->
+HME RERH KERNEN KEN RR RHEE ERE EEE
+
+ 
+
+ 
+
+ 
+
+PLE
+ENE ABOVES :J N ON SAME BANDS.
+sSRANDOM VERT AFT HOR->
+RNDRT
+AG 08 LDY #RDUL-DIFTBL
+A? 04 LDA #4
+25 De AND RANDOM
+DO OA BNE ABOVE?
+4C 63 22 JMF HAYVDIR
+ABOVES
+AQ On LDY #URLD-DIRTBL
+290 F7 22 JSR HORV sH-V=
+sUSED T7,T8.
+2245: BO 1C BCS HAVDIR sCHOOSE SHORTEST DIR.
+ABOVE?
+sRUDL
+
+2247: AO 14
+2249: 3
+
+LDY #RUDL-DIRTBL
+JMF HAVDIR
+
+ 
+
+* MR DO IS ABOVE TO LEFT—->
+FER HE EE IE HEHEHE IEE EH IE
+
+ 
+
+ABYVL
+224C: 28 PLE
+2=24D: DO OB BNE ABOVES iJ N ON SAME BANDS.
+sRANDOM VERT AFT TRY HORIZ~>»
+RNDLFT
+224F: ADP 10 LDA
+2251: 25 D9 AND
+DO oc BNE
+
+   
+
+ 
+
+Para f LOY FLVUN-DIRTE
+2257: 4C 63 22 > JMP  HAVDIR
+
+    
+ 
+
+ABOVES
+225A: LDY #ULRD-DIFTEBL
+225E% ae JSR HORY 3H-V=
+sUSED T7,TS.
+225Fs BO O02 BCS HAVDIR sCHOOSE SHORTEST DISTANCE.
+ABOVE7
+3 LUDF:
+2261: AQ OE LDY #LUDR-DIRTBL
+HAVDIR
+52 84 F4 > L STY TEMPS sSV PTR TO DIRTBL.
+2265: 4C CD 22 +472 JMF SEARCH sSTART SEARCH.
+
+4
+
+ 
+
+ 
+
+a:
+
+aS MERKEN EE KSEE EEE KEKE MEER KE RE REY
+P4735  % TRY TO MOVE BADGUY RIGHT-—:
+PATE HERE RENNER RRE HK EMRE ERE RE REREHRER
+2477 MDRT
+
+ 
+
+ 
+
+BS CO 2478 LDA DOFOF,X
+18 247? ELC
+49 08 7480 ADC #8 ‘TEST POS+8.
+Ag 2481 TAY
+BS BD 2482 LDA DOBAND, x
+20 79 2D 2483 JSR CETST sSEE IF FIELD ON THERE.
+7484 ;USED T1~-T4.
+FO 03 2485 BE@ MDRT2
+4C C7 22 7486 JMF NOGOOD sJP IF ON.
+2487 MDRT2
+2278: 20 3D 2C +488 JSF MRIGHT STRY RT.
+7489 sUSED T1-TS.
+90 O83 P4990 BCC MDRT4 sJP IF COULD GO LEFT.
+4C C7 22 3491 JME NOGOOD
+7492 MDRT4
+2280: AI 02 2493 LDA #RIGHTD sNEW DIR.
+2282: 40 E4 B22 2494 JMP DIDMOQV
+24A9S :
+
+  
+
+BO 31
+AP OS
+4C.E4
+
+ 
+
+bi
+hi
+
+ 
+
+ 
+
+ERE EKER EK KK ELE RARER EE HERES EE EH
+MOVE BADGUY LEFT-—>
+KREME ERMEE KEE ERE HERSEK ERE KE KRE EEE
+
+* TRY
+
+MDLT
+
+TO
+
+LDA
+LDY
+BEQ
+DEY
+JSR
+
+BNE
+JSR
+
+BCS
+LDA
+IMF
+
+DOBAND, X
+DOFOF, x
+nNocoop
+
+CCTST
+
+NOGOOD
+MLEFT
+
+NOGOOD
+#LEFTD
+DIDMOV
+
+sJP IF AT EDGE.
+sFOS-1.
+
+sFLD ON?
+
+sUSED T1-TA4.
+
+sJP YES(NOT MOWED).
+
+sTRY UTz
+sUSED T1-T4.
+
+sNEW DIR.
+
+ 
+
+ 
+
+ 
+
+=
+ws
+
+B4
+
+38
+E9
+
+20
+
+DO
+20
+BO
+
+AD
+4c
+
+1B
+OL
+E4
+
+ 
+
+KEEK EN ERK H ELE EEE KK RHE EEN HERE RR ERE
+* TRY TO MOVE BADGUY DOWN-- >
+EREKERE RN EM EEE ER EERE EEE EERE EEE
+
+MDDN
+LDA
+LDY
+
+SEC
+SBC
+JSR
+BNE
+JSR
+BCS
+
+LDA
+IMF
+
+DOBAND, X
+DOF OF, x 2
+sTEST IF FLD MOWED BELOW DIG-:>
+#$10 3s BAND-1.
+CCTST
+sUSED T1-T4.
+NOGOOD
+MDOWN sTRY DN.
+sUSED Til.
+NOGOOD
+#DOWND sNEW DIR.
+DIDMOV
+
+BS
+B4
+18
+69
+22BE: 20
+
+ 
+
+22BB: DO
+
+22BD: 20
+
+22CO! BO
+
+22C2: A?
+2204: 4C
+
+oo
+£4
+
+ 
+
+LENE ELL LE KEENER KENNER EERE HK
+MOVE BADGUY UF-~>
+HE KER LANNE NRE ENR E ERE MRE EEN OH
+
+* TRY
+
+MDUF
+
+LDA
+LDY
+CLC
+ADC
+JSR
+
+BNE
+
+JSR
+
+BCS
+
+LDA
+IMF
+
+DOBAND, X
+DOFOF, x
+
+#910
+CCTSstT
+
+NOGOOD
+
+MUF
+
+NOGOOD
+
+#UFD
+DIDMOV
+
+sBAND+1.
+sMOWED?
+sUSED 11-T4.
+3JF NO.
+
+sTRY TO MOVE UP.
+
+sUSED Tl.
+
+3
+
+:NEW DIR.
+
+|
+|
+
+ 
+
+EXHELEN KKK R HE MEH H KK REH EEE HE EE EH
+* LAST MOVE TRIED WAS NOT LEGAL.
+* TRY SOMETHING ELSE--->
+
+WRK KHE ERE EEE RENEE KEKE HERE ERE
+
+   
+
+3 nNoGoaD
+FS 255 DEC TEMPS
+29 foo BMI NG9?9 iJF IF TRIED ALL 4 DIRECTIONS.
+F4 2560 INC TEMFS6 sUP DIRTBL. IDX.
+2541 SEARCH
+F4 2362 LDY TEMPS s:GET DIR-TO-TRY~-NEXT IDX.
+24 23 2565 LDA DIRTEL,Y
+oo 2544 CMF #UFD
+o DE 7565 BEG MDUPF sJP IF UF.
+OL * CMF = #DOWND
+Gr BEG MDDN ;JF IF DOWN.
+Os CMF #LEFTD
+Os BE@Q MDLTJIF JP IF LEFT.
+63 IMF MDRT sELSE MUST BE RIGHT.
+MDLTJF
+22E1: 4C 3S JMF  MDLT
+
+3
+* THE NEW MOVE HAS BEEN MADE
+FOE HEHE ME IEE HE HE FE FE FEE IEE HIE FE TEI
+
+ 
+
+DIDMOQV
+STA DIGDIR-1,X :SV NEW DIR.
+LDA TEMPS
+CMP #5 WAS IT FIRST TRY?
+REQ NG9? id Y.
+LD& RANDOM
+2=ZEE! 29 OF AND #$0F
+22F0: 69 O01 ADC #1 sMARE NZ.
+22F2: 93, /CB STA DIGI@-1,X sREINIT IQ.
+NG??
+
+22F4: 40 30
+
+ 
+
+JMP  ENDBOT sJP DONE @4LL BADGUYS/DIGGERS.
+
+ 
+
+ 
+
+ 
+
+ 
+
+on O2
+
+OS OL
+
+OL
+
+Oo?
+
+oOo
+
+Os
+
+oo
+
+ 
+
+ 
+
+900
+
+ 
+
+oo
+
+ 
+
+* WHICH DISTANCE IS GREATER H/V?
+KLEE KEKE REE REE KEE EEE EEK HHEE
+
+HORY
+LDA
+AND
+SEC
+SEC
+BPL
+EOR
+Oy
+ADC
+
+NOBOR
+LSF
+LSR
+LSR
+LSF
+STA
+
+LDA
+LSR
+LSR
+LSF
+STA
+LDA
+LSR
+LSR
+CSR
+SEC
+SBC
+BFL
+EOR
+CLE
+ADC
+NOBOR?
+CMF
+RTS
+
+DOBAND
+#E70
+
+DOBAND, X
+
+NOBOR sJ PLUS RESULT.
+
+#FF »MAKE PLUS.
+
+#1
+
+TEMP? :SV V DIF.
+
+DOFPOF
+
+~
+wo
+
+TEMFS
+DOFOF, x
+
+‘8.
+
+ae
+
+TEMFS sDIGPOF-—DOFOF.
+NOBOR2
+
+#EFF
+
+#1
+
+TEMP?
+
+* NEXT DIRECTION TO TRY TABLE-—>
+HMRER ELE RENEE ERK ERE EM ENE RE RE
+
+DIRTBL
+URLD
+
+DFE
+LDUR
+
+DFB
+ULRD
+
+DFE
+RDUL
+
+DFE
+DRLU
+
+DFE
+LUDR
+
+DFE
+DLRU
+
+DFB
+RUDL.
+
+DFB
+ENDBOT
+
+UFD.,RIGHTD
+
+LEFTD, DOWND, UFD,RIGHTD
+
+UPD, LEFTD
+
+RIGHTD, DOWND, UPD, LEFTD
+
+DOWND, RIGHTD
+
+LEFTD, UPD, DOWND, RIGHTD
+
+DOWND, LES TD
+
+RIGHTD, UFD, DOWND, LEFTD
+
