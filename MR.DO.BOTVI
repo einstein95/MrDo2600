@@ -351,72 +351,47 @@ NM3
                          ;RND 2ND TRY AFT RIGHT.
          JMP  RNDRT
                          ;
-
- 
-
-* FIGURE WHICH DIR TEL TO USE--
-HELE KEKE EERE KEELE MERKEN EERE RE
-
-NEWDIF:
-21E3: AS BD LDA DOBAND
-Z1ES: 29 70 AND #970 SEF BAND.
-ZLB ss = BD CMF DOBAND, X
-21E9: BO 30 BCS DIR2S {JF MR DO ABOVE OR EQ TO DIG.
-
-HEHEHE HEH HE EE EE EE IE IEEE IE
-* MF DO IS BELOW THIS DIGGER-->
-FIR IEEE IIE EE IEE FE EE SEE FE IE HE HE
-
-LDA DOFOF
-
-CMF DOFOF, x
-
-BNE HELOW1
-
-21EB: AS Co
-21ED: DS Co
-21EF: DO 19
-SRANDOM HOR TRY AFT VERT.
-
+                         ;
+* FIGURE WHICH DIR TBL TO USE-->
+********************************
+NEWDIR
+         LDA  DOBAND
+         AND  #$70       ;KP BAND.
+         CMP  DOBAND,X
+         BCS  DIR25      ;JP MR DO ABOVE OR EQ TO DIG.
+                         ;
+********************************
+*  MR DO IS BELOW THIS DIGGER-->
+********************************
+         LDA  DOFOF
+         CMP  DOFOF,x
+         BNE  BELOW1
+                         ;RANDOM HOR TRY AFT VERT.
 RNDDWN
-21F1: AO 12 LDY #DLRU-DIRTBL
-“2iFst 87 10 LDA #$10
-21FS% 26) DY AND RANDOM
-21F7: DO O35 BNE BELOWO
-Z2IF?: AC 62 JMFP  HAVDIR
-BELOWO
-sDRLU.
-21FC: AO oc LDY #DRLU-DIRTSL
-421FE: 4€ 435 JMP HAVDIR
-BELOW)
-
-22013 90 0C BCC BLOL JF MR DO IS TO LEFT.
-
-* MR DO IS BELOW TO RIGHT-*
-RHEE RE REE ENE KES EE REKE KER EERE EY
-
-22072 AQ OC LDY #DRLU-DIRTBL
-
- 
-
-2205: 20 FF 22 JSR HORV sWHICH DISTANCE IS GREATER?
-sH-V=
-BO S9? BCS HAVDIF CHOOSE SHORTEST DISTANCE.
-ag 08 LDY #RDUL-DIRTBL
-: JMP  HAVDIR :JP IF ON SAME BAND.
-
- 
-
- 
-
-}.
-@eeeoeees#ee#wstees8#e#e#ee#eteeeeeeeese @:
-
+         LDY  #DLRU-DIRTBL
+         LDA  #$10
+         AND  RANDOM
+         BNE  BELOW0
+         JMP  HAVDIR
+BELOW0
+                         ;DRLU.
+         LDY  #DRLU-DIRTBL
+         JMP  HAVDIR
+BELOW1
+         BCC  BLOL       ;JP MR DO IS TO LEFT.
+                         ;
+* MR DO IS BELOW TO RIGHT->
+********************************
+         LDY  #DRLU-DIRTBL
+         JSR  HORV       ;WHICH DISTANCE IS GREATER?
+                         ;H-V=
+         BCS  HAVDIR     ;CHOOSE SHORTEST DISTANCE.
+         LDY  #RDUL-DIRTBL
+         JMP  HAVDIR     ;JP IF ON SAME BAND.
+                         ;
+                         ;
 * MR DO IS BELQW TO LEFT->
-SME RKEEEE KE REE EE EEE RHEE RHE ERE EEE
-
- 
-
+********************************
 BLOL
 D2OF: AG LDY #DLRU-DIRTBL
 Pali: 26 JSR HORV 3H-V=
