@@ -33,7 +33,7 @@ CLRAM    STA  0,X
 * GO INIT CHERRY,FIELD MAP,MUGS,APPLES,ETC-->
 **********************************************
                          ;ROUND=0
-         JSF  IROUND
+         JSR  IROUND
                          ;NO SONG->
                          ;
          LDA  #SELECT    ;TRACK MODE
