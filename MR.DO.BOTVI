@@ -327,40 +327,30 @@ ABORT
          STA  DIGIQ-1,X
          JMP  NEWDIR
                          ;
-
-* TRY TO CONTINUE IN SAME DIR-»
-HHEKE ERE MRE RHEE ERS ERR EE HR HER EH EE
-
- 
-
-SAME1L
-cS LDA DIGDIR-1,x
-os AND #3
-oo CMF #UFD
-os , BNE NM1
-sRANDOM 2ND TRY AFT UF.
-21CF: 4C 23 22 JMF  RNDUF
+                         ;
+* TRY TO CONTINUE IN SAME DIR->
+********************************
+SAME1
+         LDA  DIGDIR-1,X
+         AND  #3
+         CMP  #UPD
+         BNE  NM1
+                         ;RANDOM 2ND TRY AFT UP.
+         JMP  RNDUP
 NM1
-21D2: C9 at CMF #DOWND
-21D4: DO oF BNE NM2
-SRANDOM 2ND TRY AFT DOWN.
-21D6: 4C Fil 21 JMF RNDDWN
+         CMP  #DOWND
+         BNE  NM2
+                         ;RANDOM 2ND TRY AFT DOWN.
+         JMP  RNDDWN
 NM2
-21p9: C? 03 CMF #LEFTD
-Z1DB: DO O53 BNE NMS
-sRANDOM 2ND TRY AFT LEFT.
-21DD: 4C 4F 22 IMP RNDLFET
-NMS
-
-sRFND 2ND TRY AFT RIGHT.
-
- 
-
-21E0: 4C 35 22 JMF  RNDRT
-
- 
-
-:
+         CMP  #LEFTD
+         BNE  NMS
+                         ;RANDOM 2ND TRY AFT LEFT.
+         JMP  RNDLFT
+NM3
+                         ;RND 2ND TRY AFT RIGHT.
+         JMP  RNDRT
+                         ;
 
  
 
