@@ -304,22 +304,22 @@ EMV
 * (IF DIGIQ = NZ TRY TO KP GOING>
 ********************************
 NEWMOV
-         LDA #3
-         STA TEMPS :INIT # DIR TO TRY.
+         LDA  #3
+         STA  TEMP5      ;INIT # DIR TO TRY.
                          ;
-         LDA DIGIO-1,x
-         BEQ NEWDIR
-         DEC DIGIO-1,X
+         LDA  DIGIQ-1,X
+         BEQ  NEWDIR
+         DEC  DIGIQ-1,X
                          ;
 * IF H/V POS=D0 H/V POS THEN ABANDON CCELL RULE.
 ********************************
          LDA  DOBAND
          AND  #$70
-         CMF  DOBAND,X
+         CMP  DOBAND,X
          BEQ  ABORT
                          ;
          LDA  DOPOF
-         CMF  DOPOF,X
+         CMP  DOPOF,X
          BNE  SAME1
                          ;
 ABORT
