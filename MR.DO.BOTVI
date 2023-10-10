@@ -481,12 +481,12 @@ MDRT
          TAY
          LDA  DOBAND,X
          JSR  CCTST      ;SEE IF FIELD ON THERE.
-                         ;USED T1~-T4.
+                         ;USED T1-T4.
          BEQ  MDRT2
          JMP  NOGOOD     ;JP IF ON.
 MDRT2
          JSR  MRIGHT     ;TRY RT.
-                         ;USED T1-TS.
+                         ;USED T1-T3.
          BCC  MDRT4      ;JP IF COULD GO LEFT.
          JMP  NOGOOD
 MDRT4
@@ -515,310 +515,131 @@ MDLT
 ********************************
 *  TRY TO MOVE BADGUY DOWN-->
 ********************************
-
 MDDN
-LDA
-LDY
+         LDA  DOBAND,X
+         LDY  DOPOF,X
+                         ;TEST IF FLD MOWED BELOW DIG-:>
+         SEC
+         SBC  #$10       ;BAND-1.
+         JSR  CCTST
+                         ;USED T1-T4.
+         BNE  NOGOOD
+                         ;
+         JSR  MDOWN      ;TRY DN.
+                         ;USED T1.
+         BCS  NOGOOD
+         LDA  #DOWND     ;NEW DIR.
+         JMP  DIDMOV
+                         ;
+********************************
+*  TRY TO MOVE BADGUY UP-->
+********************************
+MDUP
 
-SEC
-SBC
-JSR
-BNE
-JSR
-BCS
-
-LDA
-IMF
-
-DOBAND, X
-DOF OF, x 2
-sTEST IF FLD MOWED BELOW DIG-:>
-#$10 3s BAND-1.
-CCTST
-sUSED T1-T4.
-NOGOOD
-MDOWN sTRY DN.
-sUSED Til.
-NOGOOD
-#DOWND sNEW DIR.
-DIDMOV
-
-BS
-B4
-18
-69
-22BE: 20
-
- 
-
-22BB: DO
-
-22BD: 20
-
-22CO! BO
-
-22C2: A?
-2204: 4C
-
-oo
-£4
-
- 
-
-LENE ELL LE KEENER KENNER EERE HK
-MOVE BADGUY UF-~>
-HE KER LANNE NRE ENR E ERE MRE EEN OH
-
-* TRY
-
-MDUF
-
-LDA
-LDY
-CLC
-ADC
-JSR
-
-BNE
-
-JSR
-
-BCS
-
-LDA
-IMF
-
-DOBAND, X
-DOFOF, x
-
-#910
-CCTSstT
-
-NOGOOD
-
-MUF
-
-NOGOOD
-
-#UFD
-DIDMOV
-
-sBAND+1.
-sMOWED?
-sUSED 11-T4.
-3JF NO.
-
-sTRY TO MOVE UP.
-
-sUSED Tl.
-
-3
-
-:NEW DIR.
-
-|
-|
-
- 
-
-EXHELEN KKK R HE MEH H KK REH EEE HE EE EH
+         LDA  DOBAND,X
+         LDY  DOPOF,X
+         CLC 
+         ADC  #$10         ;BAND+1.
+         JSR  CCTST        ;MOWED?
+                           ;USED T1-T4.
+         BNE  NOGOOD       ;JP NO.
+                           ;
+         JSR  MUP          ;TRY TO MOVE UP.
+                           ;USED T1.
+         BCS  NOGOOD
+                           ;
+         LDA  #UPD         ;NEW DIR.
+         JMP  DIDMOV  
+********************************
 * LAST MOVE TRIED WAS NOT LEGAL.
-* TRY SOMETHING ELSE--->
-
-WRK KHE ERE EEE RENEE KEKE HERE ERE
-
-   
-
-3 nNoGoaD
-FS 255 DEC TEMPS
-29 foo BMI NG9?9 iJF IF TRIED ALL 4 DIRECTIONS.
-F4 2560 INC TEMFS6 sUP DIRTBL. IDX.
-2541 SEARCH
-F4 2362 LDY TEMPS s:GET DIR-TO-TRY~-NEXT IDX.
-24 23 2565 LDA DIRTEL,Y
-oo 2544 CMF #UFD
-o DE 7565 BEG MDUPF sJP IF UF.
-OL * CMF = #DOWND
-Gr BEG MDDN ;JF IF DOWN.
-Os CMF #LEFTD
-Os BE@Q MDLTJIF JP IF LEFT.
-63 IMF MDRT sELSE MUST BE RIGHT.
-MDLTJF
-22E1: 4C 3S JMF  MDLT
-
-3
+*  TRY SOMETHING ELSE--->
+********************************
+NOGOOD
+         DEC TEMP5
+         BMI NG99          ;JP IF TRIED ALL 4 DIRECTIONS.
+         INC TEMP6         ;UP DIRTBL IDX.
+SEARCH
+         LDY TEMP6         ;GET DIR-TO-TRY-NEXT IDX.
+         LDA DIRTBL,Y
+         CMP #UPD
+         BEQ MDUP          ;JP IF UP.
+         CMP #DOWND
+         BEQ MDDN          ;JP IF DOWN.
+         CMP #LEFTD
+         BEQ MDLTJP        ;JP IF LEFT.
+         JMP MDRT          ;ELSE MUST BE RIGHT.
+MDLTJP
+         JMP  MDLT
+                           ;
 * THE NEW MOVE HAS BEEN MADE
-FOE HEHE ME IEE HE HE FE FE FEE IEE HIE FE TEI
-
- 
-
-DIDMOQV
-STA DIGDIR-1,X :SV NEW DIR.
-LDA TEMPS
-CMP #5 WAS IT FIRST TRY?
-REQ NG9? id Y.
-LD& RANDOM
-2=ZEE! 29 OF AND #$0F
-22F0: 69 O01 ADC #1 sMARE NZ.
-22F2: 93, /CB STA DIGI@-1,X sREINIT IQ.
-NG??
-
-22F4: 40 30
-
- 
-
-JMP  ENDBOT sJP DONE @4LL BADGUYS/DIGGERS.
-
- 
-
- 
-
- 
-
- 
-
-on O2
-
-OS OL
-
-OL
-
-Oo?
-
-oOo
-
-Os
-
-oo
-
- 
-
- 
-
-900
-
- 
-
-oo
-
- 
-
+********************************
+DIDMOV
+         STA  DIGDIR-1,X   ;SV NEW DIR.
+         LDA  TEMP5
+         CMP  #3           ;WAS IT FIRST TRY?
+         BEQ  NG99         ;J Y.
+         LDA  RANDOM
+         AND  #$0F
+         ADC  #1           ;MAKE NZ.
+         STA  DIGIQ-1,X    ;REINIT IQ.
+NG99
+         JMP  ENDBOT       ;JP DONE ALL BADGUYS/DIGGERS.
+                           ;
+                           ;
 * WHICH DISTANCE IS GREATER H/V?
-KLEE KEKE REE REE KEE EEE EEK HHEE
-
-HORY
-LDA
-AND
-SEC
-SEC
-BPL
-EOR
-Oy
-ADC
-
+********************************
+HORV
+         LDA  DOBAND
+         AND  #$70
+         SEC  
+         SBC  DOBAND,X
+         BPL  NOBOR        ;J PLUS RESULT.
+         EOR  #FF          ;MAKE PLUS.
+         CLC  
+         ADC  #1
 NOBOR
-LSF
-LSR
-LSR
-LSF
-STA
-
-LDA
-LSR
-LSR
-LSF
-STA
-LDA
-LSR
-LSR
-CSR
-SEC
-SBC
-BFL
-EOR
-CLE
-ADC
-NOBOR?
-CMF
-RTS
-
-DOBAND
-#E70
-
-DOBAND, X
-
-NOBOR sJ PLUS RESULT.
-
-#FF »MAKE PLUS.
-
-#1
-
-TEMP? :SV V DIF.
-
-DOFPOF
-
-~
-wo
-
-TEMFS
-DOFOF, x
-
-‘8.
-
-ae
-
-TEMFS sDIGPOF-—DOFOF.
+         LSR  
+         LSR  
+         LSR  
+         LSR  
+         STA  TEMP7        ;SV V DIF.
+                           ;
+         LDA  DOPOF
+         LSR
+         LSR  
+         LSR               ; /8.
+         STA  TEMP8
+         LDA  DOFOF,X
+         LSR  
+         LSR  
+         LSR               ; /8.
+         SEC  
+         SBC  TEMP8        ;DIGPOF-DOPOF.
+         BPL  NOBOR2
+         EOR  #$FF
+         CLC  
+         ADC  #1
 NOBOR2
-
-#EFF
-
-#1
-
-TEMP?
-
+         CMP  TEMP7
+         RTS  
+                           ;
 * NEXT DIRECTION TO TRY TABLE-—>
-HMRER ELE RENEE ERK ERE EM ENE RE RE
-
+********************************
 DIRTBL
 URLD
-
-DFE
+         DFB  UPD,RIGHTD
 LDUR
-
-DFB
+         DFB  LEFTD,DOWND,UPD,RIGHTD
 ULRD
-
-DFE
+         DFB  UPD,LEFTD
 RDUL
-
-DFE
+         DFB  RIGHTD,DOWND,UPD,LEFTD
 DRLU
-
-DFE
+         DFB  DOWND,RIGHTD
 LUDR
-
-DFE
+         DFB  LEFTD,UPD,DOWND,RIGHTD
 DLRU
-
-DFB
-RUDL.
-
-DFB
+         DFB  DOWND,LEFTD
+RUDL
+         DFB  RIGHTD,UPD,DOWND,LEFTD
 ENDBOT
-
-UFD.,RIGHTD
-
-LEFTD, DOWND, UFD,RIGHTD
-
-UPD, LEFTD
-
-RIGHTD, DOWND, UPD, LEFTD
-
-DOWND, RIGHTD
-
-LEFTD, UPD, DOWND, RIGHTD
-
-DOWND, LES TD
-
-RIGHTD, UFD, DOWND, LEFTD
-
