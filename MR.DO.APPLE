@@ -1,0 +1,308 @@
+*/ MR.DO.APPLE LASTED 8/3/83.
+                         ;
+*  APPLE FALLING TEST-->
+********************************
+APPLE
+         LDA  APFALL
+         BPL  FALLMON    ;JP IF AN APPLE IS FALLING.
+         LDA  FRAMEL     ;TEST IF 1 CAN FALL.
+         AND  #3
+         TAX             ;ONLY TEST 1 PER FRAME.
+         LDA  APBAND,X
+         BMI  NF?        ;JP APPLE NOT ON.
+         AND  #$70
+         BEQ  NF9        ;JP SITTING IN BOTTOM BAND.
+* TEST IF FIELD ON UNDER APPLE->
+********************************
+         LDA  APFPOF,X
+         AND  #7         ;ON COLUMN?
+         CMP  #4         ;SHOULD WE COOK IN COLUMN TO RT.
+         LDA  AFPPOF,X
+         BCC  NFS        ;IF N5.
+         ADC  #7
+NF5
+         TAY             ;Y=POS TO CHK.
+         LDA  APBAND,X
+         SEC
+         SBC  #$10       ;BAND-1.
+         JSR  CCTEST
+         BEQ  STFALL     ;JP FLD OFF.
+NF9
+         JMP  FALL99     ;JP CAN'T FALL.
+                         ;
+* START APPLE FALLING-->
+********************************
+STFALL
+         TXA             ;GET WHICH APPLE.
+         ASL
+         ASL
+         ASL
+         ASL
+         ORA  #$F0       ;SET TIMER.
+         STA  APFALL
+                         ;START ROCKING IMG-2
+         LDA  AFPBAND,X
+         AND  #$FO
+         ORA  #1         ;IMG IDX = 1.
+         STA  APBAND,X
+         JMP  FALL99
+                         ;
+* AN APPLE IS ALREADY FALLING-->
+********************************
+FALLMON
+          LSR
+          LSR
+          LSR
+          LSR
+          TAX            ;X=WHICH AP IS FALLING.
+          DEC  APFALL    ;DEC TIMER.
+                         ;IS TIME UP?
+          LDA  APFALL
+          AND  #$0F
+          BEQ  FO3       ;JF TIME IS UP.
+          JMP  FALL99
+********************************
+* APPLE STAGE TIMER IS UP.
+*  DECIDE TO KP FALLING, BREAK, OR SIT->
+********************************
+FO3
+          LDA  APBAND,X
+          AND  #$0F      ;GET IMG IDX.
+          CMP  #1
+          BNE  F44
+                         ;START ROCK2 IMG->
+          INC  APBAND,X  ;IMG_IDX=2.
+          JMP  SETTIM
+F44
+          CMP  #2
+          BNE  F55       ;JP NOT 2ND ROCK STAGE.
+          INC  APBAND,X  ;IMG IDX=3 (FALLING APFPLE).
+                         ;MOVE APPLE TO NEAREST COLUMN->
+          LDA  APPOF,X
+          AND  #7
+          CMP  #4
+          LDA  APPOF,X
+          BCC  F47       ;JP NO ADJUST RIGHT NEEDED.
+          ADC  #7
+F47
+          AND  #$F8      ;RMV LO 3 BITS.
+          STA  APPOF,X
+          JMP  SETTIM
+F55
+          CMP  #3        ;FALLING DOWN?
+          BEQ  MIDAIR    ;JP YES.
+          CMP  #4        ;BREAKING STAGE 1?
+          BEQ  F57       ;J Y.
+                         ;
+* MUST BE DONE W/LAST BRK STAGE->
+********************************
+APRMV
+          LDA  #$80
+          STA  APBAND,X  ;APPLE OFF.
+          STA  APFALL    ;NO AP FALLING NOW.
+          LDA  #$1F
+          AND  ANIM8     ;CLR DRAG BITS.
+          STA  ANIM8
+          JMP  FALL99
+F57
+          INC APBAND,X   ;IMG IDX=4 =BRKING STAGE 2.
+          JMP SETTIM
+                         ;
+                         ;
+                         ;
+* KEEP MOVING APPLE DOWN IF NO FIELD(OR NOT ALREADY AT BOTTOM).
+***************************************************************
+MIDAIR
+          LDA  APBAND,X
+          AND  #$70
+          BNE  MID5
+          JMP  SITBRK    ;J AT BOTTOM.
+MID5
+          LDA  APBAND,X
+          SEC
+          SBC  #$10      ;BAND-1.
+          LDY  APPOF,X
+          JSR  CCTST     ;FLD ON BELOW?
+          BEQ  MID15     ;JF FLD IS OFF.
+          JMP  SITBRK    ;FLD IS ON.
+* MOVE APPLE DOWN (FLD IS OFF)
+********************************
+MID15
+          STA  APBAND,X  ;SV NEW BAND NUM.
+          AND  #$70      ;KPBAND.
+          STA  TEMP2
+          LDA  #$0A      ;SET UP FALL/FRAME TIMER.
+          ORA  APFALL
+          STA  APFALL
+                         ;
+* TEST IF MR DO  OR DIGS HIT BY APPLE->
+********************************
+          LDY  #2
+DRAGT
+          LDA  DMASK,Y
+          AND  ANIM8     ;MR DO ALREADY HIT BY APPLE?
+          BEQ  NYET      ;J N.
+                         ;
+*MR DO/DIG BEING DRAGGED, MOVE HIM DOWN-->
+*****************************************
+          LDA  DOBAND,Y
+          BMI  NXTTST    ;JFP OFF
+          SEC
+          SBC  #$10      ;BAND-1
+          AND  #$F0      ;LN=0
+          STA  DOBAND,Y
+          JMP  NXTTST
+                         ;
+                         ;
+* SHOULD MR DO/DIG BE DRAGGED?-->
+********************************
+NYET
+                         ;TEST HORIZ->
+          LDA  DOPOF,Y
+          CMP  APPOF,X
+          BEQ  VTEST     ;J SAME POS.
+          BCC  APRITE    ;JP DOPOS<APPOS.
+                         ;DOPOS>APPOS.
+          SBC  #7
+          BPL  APLEFT    ;J NO WRAP.
+          LDA  #0        ;DON'T LET WRAP.
+APLEFT
+          CMP  APPOF,X
+          BEQ  VTEST     ;J SAME.
+          BCS  NXTTST    ;J NO HIT
+          BCC  VTEST
+APRITE
+          ADC  #7
+          CMP  APPOF,X
+          BCC  NXTTSR    ;J NO HIT.
+                         ;TEST VERT->2
+VTEST
+          LDA  DOBAND,Y
+          BMI  NXTTST    ;J OFF.
+          AND  #$70      ;KP BAND.
+          SEC
+          SBC  TEMP2     ;AP BAND.
+          BEQ  DRAGIT
+          CMP  #$10      ;IS DO/DIG 1 ABOVE?
+          BNE  NXTTST    ;J N.
+                         ;DROP HIM A BAND.
+          LDA  DOBAND,Y
+          AND  #$0F      ;LN=O?
+          BNE  DRAGEM    ;J=N.
+          TYA
+          BEQ  NXTTST    ;J MR DO.
+
+DRAGEM
+          LDA  DOBAND,Y
+          SEC
+          SBC  #$10
+          AND  #$F0      ;LN=0
+          STA  DOBAND,Y
+                         ;NOW DRAG HIM->
+*  START DRAGGING MR DO OR DIG-->
+********************************
+DRAGIT
+244C: B? CA 24 >205                 LDA DMASK,Y                                                               4
+#           244F: O5 8E        >2O6                     ORA ANIM8            ;SET BEING DRAGSGED BIT.
+2451: 85 8E       >2O7                 STA ANIMS
+>2O8                                              :
+LD                                   >209 NXTTST                                                                                              E
+2453: 88            >2TO                   DEY
+2484: IO SP5     >2I1             BPL _BDRAGT       ;TEST ALL 3.                             @E
+@E          2456: 4C D7 24 >212                   JMP FALL??
+>213                                              S:
+E                                                                                                                                                    @
+@E                                                                                                                                                    @
+@                                                                                                                                                    @
+' E   ' '      2459: A? 5       JA 0   SETTIM     56   #SOC            ;SET UP I5 FRAME TIMER.                       #
+2455: O5 85       >2I7                 ORA APFALC
+2455: G5 SN5       >2IS8                 STA APFALL        ;SET TIMER.
+#         245F: 4C D7 24 >21?                  JHP FALL??         ;KP FALLING IF FLD IS NOT ON.             E
+#                                                                                                                                                    LD
+* APPLE CAN NOT FACC ANY FURTHER.                         D
+2223 * TEST IF APPLE HAS FALCEN NORE
+224 * THAN 1 BAND FROM ORGIN--)                                     @E
+@                  >225 * ALSO RMV ANYONE DRAGGED DOWN.*
+>226 ********************************
+>227 SITBRK                                                                                                                                             4
+@#     242: A5 SE    >228         LDA ANIM8     ;GET DRAG FLAGS.
+2364: 29 5    >22?         AND #$EO      ;ANY DRAGS?
+2466: FO 3B    >230         BED SB25      ;J N_DRAGS.                      4
+@                  34                        S
+2468: A9? 40    252         LDA #$4O
+2466: 25 8E    233         AND ANIM8                                    @E
+@E    24AC: FO 065   >234         BE9 SB7      ;J DIG I NOT PRAGGE5.
+246E: A? 81    >235         LDA #$8I
+2470: 85 BE   >236        STA DIGBAND   ;DIG 1 OFF.                  @E
+@                  >237 ********************************
+>238 *REV VIDEO LETTER IF ALF MNSTR *
+7239 X*******************************
+#     2472: 29 82 2B >24O5          JSSR REVVID
+2475: 29 CD 24 >24I          JSR ADDIK     ;10OO PTS.
+>242 SB7                                                    4
+#     2478: A? 25    >243         LDA #$2O
+2478: 25 SE    >244          AND ANIM8
+247C: FO O7    >245         BED SB7O      ;J DIG2 NOT 5RAGGE5.              @E
+#     247E: AO 8I    >246         LDY #$81I
+2480: 84 BF    >247          SS7Y DIGBAND+1 ;DIG2 OR.
+2482: 29 CD 24 >248          JSR ADDIK     ;IOOO PTS.                       @
+@E                  >249 SB7O
+2485: A5 9E    >250         LDA ANIM8
+4     2487: TO I7    251         BPL SB88      ;J MR DO NOT PRAGGE5.             @
+252                        S
+2489: A? 81    253          LDA #$81I
+248B: GS BD    >254         STAA POBANB    ;DO OFF                         #@
+@     248D: AA? 20    >255          LDA #DODEAB
+248F: SS DA    >256         STTA MODE
+249I: A? OO    57         LDA #O                                       @
+#     2493: 5 94    >258          STA FRAMEL
+2495: A? EF    259          LDA #$FF
+2497: 85 BA   >265         S7A NSSAN5    ;BALL NOT AVAIL.                 @E
+@E     2499: A9 54    >261         LDA #4
+249B: S5 BC   >2&2         STA MISDIR    ;BRIEF DELAY.
+                         ;
+* ADD BACK ANY DIGGERS NOT DEAD->
+********************************
+4     249D: 20 98 29 >266         JSR _INCINV                                   @E
+>267 SBS8
+24AO: 4C BC 24 >268         3MP BRKIT     ;BRK APPLE-IT HIT SOMEONE.
+>269 SBZ5                                                   #
+#     24A3: B5 PDO    570         LDA APBAND,X   ;GET BAND.
+24A5: 29 70    271          AND #$*75      ;KP BAND.
+24A7: 38      272          SEC                                            @
+E     24A8: FD G& 24 >273         SBC _ORGTBL,X   ;SUB BAND NUM IT STARTED ON.
+24AB: C? FO    >274          CMP #$FO
+24AD: DO ON   2275         BNE _BRKIT     ;JP IF FELL MORE THAN I.           @
+@                  >276                       ;LET APPLE SIT->
+24AF: 6? 85    >277          LDA #$AO
+24BI1: GS S5    >278         STA APACL    ;APPLE DONE FAL=ING.     @
+@     24B3: BS PDO    277          LDA APBAND.X
+2488: 29 FO    >28O          AND #$F9
+24B7: ?5 PO    >28I            STA APBAND,X    ;IMG_IDX=O.                           @
+          JMP FALL99
+* START BREAKING ANIMATION->
+********************************
+BRKIT
+          INC  APBAND,X  ;IMG IDX=4 (BRK STAGE 1).
+                         ;MAKE BREAKING SOUND-)                            4
+          LDA  #DEADSND
+          JSR  HISND     ;HI PRIORITY SND.
+                         ;X DESTROYED.                                      @E
+          JMPR SETTIM
+*********************************
+* APPLE BAND ORGIN TABLE->
+ORGTBL
+*********************************
+          DFB  $70,$50,$30,$10
+                         ;
+* MASKS FOR BEING DRAGGED(ANIM8)                                               @
+********************************
+DMASK
+          DFB  $80,$40,$20 ;MR.DO,DIG1,DIG2.                                    @
+ADDIK
+          LDA  #$50
+          JSR  ADDPTS                                                              4
+          LDA  #$50
+          JMP  ADDPTS    ;J THEN RET TO CALLER OF THIS RTN.
+                         ;
+FALL99
