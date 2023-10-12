@@ -1,0 +1,282 @@
+*/ MR.DO.JOYSTICK LASTED:9/12/83
+********************************
+*   JOYSTICK READ RTN ->       *
+********************************
+         LDA  BDUR
+         BMI  JOYRD      ;JP NO MUSIC ON.
+NJOY
+         JMP  BUTTON     ;SKIP JOY & BUTTON.
+JOYRD
+         LDA  MODE
+         CMP  #PLAY
+         BNE  NJOY
+                         ;
+         LDA  DOEAND
+         BMI  NJOY
+         LDA  FRAMEL
+         AND  #1
+         BNE  NJOY       ;ONLY READ EVERY OTHER FRAME.
+         LDA  #$80
+         AND  ANIM8
+         BNE  NJOY       ;JP IF DO BEING DRAGGED DOWN.
+                         ;
+         LDA  #1
+         STA  TEMP7      ;INIT TRIES.
+                         ;
+         LDA  JOYDAT     ;GET JOY
+         EOR  #$FF
+         STA  TEMP9
+         LDA  #JOYAUP
+         AND  TEMP9
+         BEQ  JOY1       ;JP NOT UP.
+         JMP  UP
+JOY1
+         LDA  #JOYADN
+         AND  TEMP9
+         BNE  DOWN
+         LDA  #JOYART
+         AND  TEMP9
+         BNE  RIGHT
+         LDA  #JOYALT
+         AND  TEMP9
+         BNE  LEFT
+                         ;
+*  THERE'S NO JOY, BUT KEEP MR DO
+* MOVING UNTIL AT A CHAR CELL.
+********************************
+         LDA DOBAND
+         AND #$0F
+         BEQ CHKHRZ      ;JP IF BETWEEN 2 BANDS.
+ILL1     JMP ILLEG
+CHKHRZ
+         LDA DOPOF
+         AND #7
+         BNE ILL1        ;JP NOT IN A CHAR CELL.
+                         ;STOP ANIMATION.
+         LDA #$FE
+         AND ANIM8
+         STA ANIM8
+         JMP JOY99
+                         ;
+*  TRY TO MOVE MR DO LEFT->    *
+********************************
+LEFT
+         LDX  #0
+         JSR  MLEFT
+         LDA  #3         ;LEFT
+         BCC  JOY98      ;J LEGAL MV. MADE.
+         CMP  LASTJY
+         BEQ  JOY99      ;J LAST JY SAME AS 1 JUST TRIED.
+         BNE  ILLEG
+                         ;
+*   TRY TO MOVE MR DO RIGHT->  *                                                  .
+********************************
+RIGHT
+         LDX  #0
+         JSR  MRIGHT
+         LDA  #2         ;RIGHT.
+         BCC  JOY98      ;J LEGAL MV MADE.
+         CMP  LASTJY
+         BEQ  JOY99      ;J ALREADY TRIED THAT DIR.
+                         ;
+         BNE  ILLEG
+                         ;
+                         ;
+*  TRY TO MOVE MR DO DOWN->    *
+********************************
+DOWN
+         LDX  #0
+         JSR  MDOWN
+         LDA  #1         ;DOWN.
+         BCC  JOY98      ;J LEGAL MV MADE.
+         CMP  LASTJY
+         BEQ  JOY99
+         BNE  ILLEG
+                         ;
+*  TRY TO MOVE MR. DO UP->     *
+********************************
+UP
+         LDX  #0
+         JSR  MUP
+         LDA  #0         ;UP.
+         BCC  JOY98      ;J LEGAL MV MADE.
+         CMP  LASTJY
+         BEQ  JOY99
+                         ;
+                         ;
+* AN ILLEGAL JOY MOVE WAS TRIED.
+* TRY LAST LEGAL DIRECTION--->
+********************************
+ILLEG
+         DEC  TEMP7      ;DEC TRIES.
+         BMI  JOY99      ;3 ALREADY TRIED LASTJY.
+         LDA  LASTJY
+         BEQ  UP         ;UP=0.
+         CMP  #1
+         BEQ  DOWN       ;DOWN=1.
+                         ;
+         LDA  DOPOF
+         AND  #7
+         BEQ  JOY99
+                         ;
+         LDA  LASTJY
+         CMP  #2
+         BEQ  RIGHT      ;RIGHT=2
+         BNE  LEFT       ;LEFT=3.
+JOY98
+         STA  LASTJY
+JOY99
+                         ;
+********************************
+BUTTON
+         LDA  FRAMEL
+         AND  #1
+         BEQ  NOBUT
+                         ;
+         LDA  ATJBA      ;RD JOY BUTTON A.
+         BMI  NOBUT      ;JP BUTTON NOT DOWN.
+                         ;IS GAME OVER???
+         LDA  MODE
+         CMP  #TRACE
+         BEQ  BUT4       ;J TRYING TO START GAME OVER.
+         CMP  #SELECT
+         BNE  BUT5
+BUT4
+         JSR  IGAME      ;START GAME OVER.
+         JMP  NOBUT
+                         ;
+* TRYING TO FIRE POWERBALL-->
+********************************
+BUT5
+         CMP  #PLAY
+         BNE  NOBUT      ;J NOT PLAY MODE.
+         LDA  BDUR
+         BPL  NORUT      ;J MUSIC ON.
+         LDA  ANIM8      ;BEING DRAGGED?
+         BMI  NOBUT      ;J Y.
+         LDA  MSBAND
+         BMI  NOBUT      ;J BALL IS NOT AVAIL.
+         LDA  MISDIR
+         BPL  NOBUT      ;J BALL ALREADY MOVING (SHOT).
+                         ;
+*  SHOOT PWR BALL->
+********************************
+         LDA  DOPOF
+         LDX  LASTJY     ;GET MR DO DIR.
+         CLE
+         ADC  PWROFF,X
+         BMI  NOBUT      ;IF AT EDGE,NO PWRBALL.
+         STA  MISPOF
+                         ;
+         LDA  PWRLN,X
+         STA  MISLN
+                         ;
+* SHOOT ONLY IF FLD OFF->
+********************************
+         CPX  #0
+         BEQ  SAM1       ;J IF UP.
+         LDA  DORAND
+         AND  #$0F
+         BNE  BLOW1
+SAM1
+         LDA  DOBAND
+         JMP  FTST
+BLOW1
+         LDA  DOBAND
+         SEC
+         SBC  #$10       ;1 LOWER.
+FTST
+         LDX  DOPOF
+         JSR  FMTEST     ;FLD ON?
+         BNE  NOBUT      ;J Y.
+         LSR
+         LSR
+         LSR
+         LSR
+SAMEBD
+         STA  MSBAND
+         LDX  LASTJY
+         LDA  PWRDIR,X
+         STA  MISDIR
+NOBUT
+                         ;
+********************************
+*  RESET, SELECT & COLOR       *
+*    SWITCH READING--->        *
+********************************
+SWIT
+         LDA  SWITCH     ;RD SWITCHES.
+         EOR  #$FF
+         AND  #SWIRES    ;RESET?
+         BEQ  NORES      ;JP NO.
+         JSR  IGAME      ;START GAME OVER
+NORES
+* TEST FOR GAME SELECT SWITCH-->
+*******************************
+         LDA  FRAMEL
+         AND  #$1F
+         BNE  NOSEL
+                         ;
+         LDA  SWITCH
+         EOR  #FF
+         AND  #SWISEL    ;JP SELECT NOT DOWN.
+         BEQ  NOSEL
+         STA  FRAMEL
+         STA  FRAMEH
+                         ;SET SELECT MODE->
+         LDA  MODE
+         CMP  #SELECT
+         BNE  SEL2       ;DON'T UP GAME NUM 1ST TIME.
+         INC  GAME       ;UP GAME NUM.
+         LDA  GAME
+         CMP  #4         ;MAX GAME NUM?
+         BNE  NOSEL      ;J NO WRAP.
+                         ;
+         LDA  #0
+         STA  GAME       ;WRAP.
+SEL2
+         LDA  #SELECT
+         STA  MODE
+         LDA  #56
+         STA  DOPOF
+NOSEL
+         LDA  ROUND
+         AND  #$0F
+         TAY
+         LDX  #4         ;SAME COL FOR B/W.
+         LDA  SWITCH
+         EOR  #$FF
+         AND  #SWICOL
+         BNE  BLKWHT
+         LDX  FLDCOL,Y
+BLKWHT
+         STX FCOLOR
+         JMP ENDJOY
+                         ;
+                         ;
+* STARTING PWRBALL LINENUMS->
+********************************
+PWRLN
+         DFB  14,1,7,7   ;U,D,R,L
+                         ;
+* PWRBALL STARTING POS OFFSETS FR.MRDO
+********************************
+PWROFF
+         DFB  3,3,7,0    ;UUDRL
+                         ;
+* PWRBALL STARTING DIRECTIONS->
+********************************
+PWRDIR
+         DFB  2,0,0,1    ;MRDO DIR=UDRL.
+                         ;PWR_DIR=UR,DR,DR,DL.                               @E
+                         ;
+* PAL ORCHARD COLOR TAELE
+********************************                                               @E
+FLDCOL
+         DFB  $32,$D2,$22,$72
+         DFB  $04,$A2,$42,$82
+         DFB  $92,$52,$B4,$62
+         DFB  $22,$82,$52,$C4                                                          @
+                         ;
+ENDJOY
+                         ;
