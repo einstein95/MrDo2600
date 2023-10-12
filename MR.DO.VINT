@@ -1,0 +1,359 @@
+*/MR.DO.VINT LASTED: 9/14/83
+*
+********************************
+*      VERTICAL  RETRACE       *
+********************************
+* WAIT FOR END OF BOTVI-->
+********************************
+THEEND
+ENDTIM
+          LDA  TIMER
+          BMI  ENDTINM
+                          ;
+          LDA  #TOPTIM
+          STA  ATWAIT     ;VINT WAIT #1
+          STA  TIME64     ;START VINT TIMER.
+                          ;UP FRAME COUNTER->
+          INC  FRAMEL
+          BNE  ALF99      ;JP NO OV.
+          INC  FRAMEH
+                          ;
+*  ADVANCE CHANNEL SELECT-->
+********************************
+          LDA  #2
+          AND  ANIM8     ;ALF MONSTER OUT?
+          BNE  ALF99     ;J Y.
+          LDA  ALPHA
+          AND  #7
+          TAX
+          INX
+          CPX  #5
+          BNE  UPALPH    ;JP NO WRAP NEEDED.
+          LDX  #0
+UPALPH
+          LDA  #$FF-7
+          AND  ALPHA
+          STA  ALPHA
+          TYA
+          ORA  ALPHA
+          STA  ALPHA     ;SV NEW CHANNEL SELECT.
+ALF99
+                         ;50 CY MAX-2
+* MAINTAIN CHERRY EATING TIMER-->
+********************************
+          LDA  FRAMEL
+          AND  #1
+          BEQ  NOTIM     ;JP NOT TIME TO UFDATE.
+          LDA  CHERRYT
+          AND  #$1F
+          BNE  EATS      ;JP TIME NOT EXPIRED.
+          STA  CHERRYT   ;START NOTE FTR OVER.
+          BEQ  NOTIM
+EAT5
+          DEC  CHERRYT   ;DEC TIMER FOR EATING.
+NOTIM
+                         ;
+********************************
+* TURN GUN OFF--->             *
+********************************
+WAIT2
+          LDA  #$02      ;RESET JOY BUTTONS.
+          STA  ATWAIT    ;VINT WAIT #2.
+          STA  ATBLNK    ;TURN GUN OFF.
+*ARE BOTH DIGGERS ON IF POSSIBLE?
+********************************
+          LDA  BDUR
+          BPL  WAIT3     ;DON'T CHK IF MUSIC ON.
+          LDA  DIGINV    ;ANY DIGS LEFT?
+          BEQ  WAIT3     ;J N.
+                         ;
+          LDA  FRAMEL
+          AND  #$7F
+          BNE  WAIT3     ;CHK EV 2 SECS.
+          LDX  #0
+          LDA  DIGBAND,X
+          BMI  D1ON      ;J DIG1 IS OFF.
+          INX
+          LDA  DIGBAND,X
+          BPL  WAIT3     ;J HE'S ON TOO.
+D1ON
+                         ;TURN HIM ON->
+          LDA  #56
+          STA  DIGPOF,X
+          LDA  #$40
+          STA  DIGBAND,X
+          LDA  #0
+          STA  DIGDAT,X
+          LDY  DIGSPD,X
+          LDA  DTIME,Y
+          STA  DIGTIM,X  ;SET UP TIME TILL DIGGING.
+          DEC  DIGINV    ;1 LESS DIG.
+                         ;
+WAIT3
+          STA  ATWAIT    ;VINT WAIT #3.
+* HAVE ALL LETTERS BEEN HAD?
+********************************
+          LDA  MODE
+          CMP  #PLAY
+          BNE  WAIT4     ;J NOT PLAY MODE.
+                         ;
+          LDA  #$F8
+          AND  ALPHA
+          CMP  #$F8
+          BNE  WAIT4     ;J NOT ALL HAD.
+          LDA  #0
+          STA  ALPHA     ;CLR REV VIDEO.
+*  GIVE AN EXTRA MR.DO-->
+********************************
+          LDA  DOINY
+          CMP  #6
+          BEQ  NOXTRA    ;J HAVE MAX.
+          INC  DOINV     ;ADD 1 TO INV.
+NOXTRA
+          LDA  #0        ;DANCE L TO R.
+          STA  DOPOF
+                         ;
+*  SET EXTRA MR DO MODE--->
+********************************
+          LDA  #XTRADO   ;SET EXTRA MR DO MODE.
+          STA  MODE
+                         ;
+          LDA  #HSONG1
+          JSR  SONG      ;PLAY SONG
+                         ;
+WAIT4
+          STA  ATWAIT    ;VINT WAIT #4.
+          LDA  MODE
+          CMP  #GAMOVR
+          BNE  W44       ;J NOT GAME OVER MODE.
+          LDA  FRAMEH
+          BEQ  WAIT5
+          JSR  SONG      ;PLAY SONG
+* SET TRACK MODE-->
+********************************
+SETTRK
+          LDA  #TRACK
+          STA  MODE      ;SET TRACK MODE.
+          JMP  WALT5
+W44
+          CMP  #SELECT
+          BNE  W45
+          LDA  FRAMEH
+          CMP  #10
+          BNE  WAIT5
+          BEQ  SETTRK    ;SET TRACK MODE->
+WAS
+          CMP  #DODEAD
+          BNE  WAIT5
+                         ;
+*  SEE IF MR.DO IS ON-->
+********************************
+          LDA  FRAMEL
+          CMP  #$80
+          BEQ  W47       ;J TO TURN ON MR DO.
+                         ;
+          CMP  #$40
+          BNE  WAIT5
+                         ;
+          LDA  #$FF
+          STA  DOBAND    ;DO OFF.
+          STA  DIGBAND
+          STA  DIGBAND+1
+          STA  MSBAND    ;PWRBALL NOT ON YET.
+          LDA  #0
+          STA  DIGDAT
+          STA  DIGDAT+1
+          STA  ANIM8     ;CLR DRAG BITS.
+          STA  MISDIR    ;SHORT DELAY.
+          BEQ  WAIT5
+                         ;
+W47
+          LDA  DOINV
+          BNE  W46       ;J SOME LEFT.
+                         ;
+*  GAME IS OVER!!!
+********************************
+GOVER
+          LDA  #GAMOVR   ;START GAME OVER MODE.
+          STA  MODE
+                         ;
+          LDA  #0
+          STA  FRAMEL
+          STA  FRAMEH    ;4 SEC GAME OVER SCREEN.
+                         ;GAME OVER SONG->
+          LDA  #SONG2
+          JSR  SONG
+                         ;
+          LDA  #56
+          STA  DOPOF
+          LDA  #$FF
+          STA  DIGBANBD  ;DIGS OFF.
+          STA  DIGBAND+1
+          BNE  WAIT5
+                         ;
+********************************
+*   PUT  MR DO BACK ON SCREEN  *
+********************************
+W46
+          DEC  DOINV     ;1 LESS MR DO.
+                         ;
+          LDA  #PLAY
+          STA  MODE
+          LDA  #56
+          STA  DOPOF
+          LDA  #0
+          STA  DOBAND
+          STA  PWRTIM    ;SET PWRTIMER TO 0.
+                         ;
+WAIT5
+          LDA  #2
+          STA  ATWAIT    ;VINT WAIT #5.
+          STA  ATSYNC    ;BRING GUN HOME.
+          LDA  MODE
+          CMP  #RESUM
+          BNE  WAIT6
+          LDA  FRAMEL
+          BNE  WAIT6     ;BLACK SCREEN.
+          INC  ROUND
+          JSR  IROUND    ;START PLAY MODE AGAIN.
+          JMP  WAIT7
+                         ;
+                         ;
+WAIT6
+          STA  ATWAIT    ;VINT WAIT #6
+          INC  RANDOM    ;FREE RUNNING RANDOM #.
+WAIT7
+          STA  ATWAIT
+                         ;
+          LDA  MODE
+          CMP  #XTRADO
+          BNE  NOX       ;J NOT EXTRA MR DO MODE.
+                         ;DANCE R TO L.
+          LDA  FRAMEL
+          AND  #1
+          BNE  NOX
+          INC  DOPOF
+          BPL  NOX
+                         ;SET RESUME MODE->
+          LDA  #RESUM
+          STA  MODE
+          LDA  #$E8      ;SHORT DELAY.
+          STA  FRAMEL
+NOX
+          LDA  #0
+          STA  ATWAIT
+          STA  ATSYNC
+                         ;
+          LDA  #BLACK
+          STA  ATSCOL    ;BLACK.
+                         ;
+                         ;
+* MANAGE DIGGING TIMERS-->
+********************************
+EVO
+          LDA  MODE
+          CMP  #FPLAY
+          BNE  EVO99
+                         ;
+          LDA  FRAMEL
+          AND  #$7F
+          BNE  EVO99     ;CHK EV 2 SEC.
+                         ;
+EVOCHK
+          LDX  #1
+EVO2
+          LDA  DIGBAND,X
+          BMI  EVO88     ;J NOT ON
+          LDA  DIGTIM,X
+          BPL  EVO7      ;J NOT DIGGING YET.
+                         ;
+          AND  #$0F
+          BNE  DTIM9     ;J NOT TIME TO TURN BACK TO BADGUY
+                         ;
+* TURN DIGGER BACK TO BADGUY->
+********************************
+          LDA  #0
+          STA  DIGDAT,X  ;CHG IMG
+          LDY  DIGSPD,X
+          LDA  DTIME,Y
+          STA  DIGTIM,X  ;SET TIME TO DIG NEXT.
+EVO5
+          TXA
+          BNE  DTIM9     ;J N DIG1.
+                         ;CLR ALF OUT FLAG->
+          LDA  #$FF-2
+          AND  ANIM8
+          STA  ANIM8
+          JMP  DTIM9
+EVO7
+          BNE  DTIM9     ;J NOT TIME TO DIG.
+*  TURN BADGUY TO DIGGER->
+********************************
+          LDA  #2
+          STA  DIGDAT,X  ;CHG IMG.
+          LDY  DIGSFD,X
+                         ;GET HOW LONG TO DIG->
+          LDA  DDUR,Y
+          STA  DIGTIM,X
+          BNE  EVO5      ;J ALWAYS.
+DTIM9
+          DEC  DIGTIM,X
+EVO88
+          DEX
+          BPL  EVVO2     ;DO BOTH.
+                         ;
+EVVO99
+          LDA  MODE
+          CMP  #PLAY
+          BNE  NGCHER
+                         ;
+          LDA  FRAMEL
+          AND  #1
+          TAX
+          LDA  DIGTIM,X
+          BPL  NOTDIG
+                         ;
+*  DO DIGGER VS. CHERRY HIT->
+********************************
+          LDA  DIGBAND,X
+          BMI  NSTDIG    ;J OFF.
+          LDY  DIGPOF,X
+          JSR  CHIT
+NOTDIG
+*  DO MR.DO VS CHERRY HIT->
+********************************
+          LDA  DOBAND
+          BMI  NOCHER    ;J DO OFF
+          LDY  DOPOF
+          JSR  CHIT      ;MR DO V. CHERRIES.
+          BCC  NOCHER    ;J NO HIT CHERRY.
+                         ;
+*  MAKE CHERRY SOUND + ADD PTS->
+********************************
+          LDA  CHERRYT
+                         ;GET WHICH CHERRY WAS ATE->
+          LSR
+          LSR
+          LSR
+          LSR
+          LSR
+          TAX
+                         ;
+          LDA  CHRPTS,X
+          JSR  ADDPTS
+                         ;
+          LDA  CNOTE,X
+          JSR  SOUND     ;PLAY CHERRY SOUND.
+                         ;X DESTROYED.
+                         ;UP CHERRY PTR->
+          LDA  CHERRYT
+          AND  #$E0
+          CLC
+          ADC  #$20
+          CMP  #$C0      ;ATE 4 ALREADY?
+          BNE  CTIME     ;J N.
+          LDA  #0
+CTIME
+          ORA  #$1C      ;SET TIMER.
+          STA  CHERRYT
+NOCHER
